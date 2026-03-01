@@ -1,5 +1,6 @@
 Dockerfile
 .dockerignore
+.VERSION
 node_modules
 npm-debug.log
 .git

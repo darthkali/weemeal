@@ -46,3 +46,6 @@ mongodb_data/
 
 # Vercel
 .vercel
+
+# Semantic release version file
+.VERSION
