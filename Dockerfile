@@ -16,7 +16,7 @@ COPY . .
 
 ARG VERSION
 ARG BUILD_DATE
-ENV NEXT_PUBLIC_VERSION=${VERSION}
+ENV NEXT_PUBLIC_APP_VERSION=${VERSION}
 ENV NEXT_PUBLIC_BUILD_DATE=${BUILD_DATE}
 
 # Build-time env vars (placeholder values for Next.js static generation)
