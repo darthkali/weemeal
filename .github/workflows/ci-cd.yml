@@ -27,10 +27,6 @@ jobs:
         run: npm run build
         env:
           MONGODB_URI: mongodb://placeholder:27017/placeholder
-          NEXTAUTH_SECRET: placeholder
-          KEYCLOAK_CLIENT_ID: placeholder
-          KEYCLOAK_CLIENT_SECRET: placeholder
-          KEYCLOAK_ISSUER: https://placeholder.com
 
   release:
     name: Release and Deploy
