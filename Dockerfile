@@ -21,10 +21,6 @@ ENV NEXT_PUBLIC_BUILD_DATE=${BUILD_DATE}
 
 # Build-time env vars (placeholder values for Next.js static generation)
 ENV MONGODB_URI=mongodb://placeholder:27017/placeholder
-ENV NEXTAUTH_SECRET=placeholder
-ENV KEYCLOAK_CLIENT_ID=placeholder
-ENV KEYCLOAK_CLIENT_SECRET=placeholder
-ENV KEYCLOAK_ISSUER=https://placeholder.com
 
 RUN npm run build
 

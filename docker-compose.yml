@@ -17,23 +17,6 @@ services:
     networks:
       - weemeal-network
 
-  # Keycloak for local auth testing
-  keycloak:
-    image: quay.io/keycloak/keycloak:24.0
-    container_name: weemeal-keycloak
-    restart: unless-stopped
-    command: start-dev --import-realm
-    ports:
-      - "8080:8080"
-    environment:
-      KC_DB: dev-mem
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-    volumes:
-      - ./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
-    networks:
-      - weemeal-network
-
   # Mongo Express (optional Web UI for MongoDB)
   mongo-express:
     image: mongo-express:1.0

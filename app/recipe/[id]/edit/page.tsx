@@ -8,7 +8,7 @@ interface EditRecipePageProps {
 
 async function getRecipe(id: string): Promise<RecipeResponse | null> {
     try {
-        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        const baseUrl = process.env.APP_URL || 'http://localhost:3000';
         const response = await fetch(`${baseUrl}/api/recipes/${id}`, {
             cache: 'no-store',
         });
