@@ -89,12 +89,12 @@ jobs:
           docker build \
             --build-arg VERSION=${{ steps.check_version.outputs.version }} \
             --build-arg BUILD_DATE="${BUILD_DATE}" \
-            -t docker.io/darthkali/weemeal-frontend-react:${{ steps.check_version.outputs.version }} \
-            -t docker.io/darthkali/weemeal-frontend-react:latest \
+            -t docker.io/darthkali/weemeal:${{ steps.check_version.outputs.version }} \
+            -t docker.io/darthkali/weemeal:latest \
             .
 
       - name: Push Docker image
         if: ${{ steps.check_version.outputs.version != '' }}
         run: |
-          docker push docker.io/darthkali/weemeal-frontend-react:${{ steps.check_version.outputs.version }}
-          docker push docker.io/darthkali/weemeal-frontend-react:latest
+          docker push docker.io/darthkali/weemeal:${{ steps.check_version.outputs.version }}
+          docker push docker.io/darthkali/weemeal:latest
