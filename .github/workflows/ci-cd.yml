@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -37,7 +37,9 @@ jobs:
       contents: write
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -51,27 +53,23 @@ jobs:
       - name: Semantic Release
         id: semantic_release
         run: |
-          npx semantic-release --debug
+          npx semantic-release
+
+          # Check if version file was created by @semantic-release/exec
+          if [ -f .VERSION ]; then
+            VERSION=$(cat .VERSION)
+            echo "New release version: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "No new release created."
+            echo "version=" >> $GITHUB_OUTPUT
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Check if a new version was created
-      - name: Check semantic-release version
-        id: check_version
-        run: |
-          echo "SEMANTIC_RELEASE_VERSION: $SEMANTIC_RELEASE_VERSION"
-          if [ -z "$SEMANTIC_RELEASE_VERSION" ]; then
-            echo "No new release created."
-            echo "version=" >> $GITHUB_OUTPUT
-            exit 0
-          else
-            echo "New release version: $SEMANTIC_RELEASE_VERSION"
-            echo "version=$SEMANTIC_RELEASE_VERSION" >> $GITHUB_OUTPUT
-          fi
-
       # Docker operations (only if new release)
       - name: Log in to Docker registry
-        if: ${{ steps.check_version.outputs.version != '' }}
+        if: ${{ steps.semantic_release.outputs.version != '' }}
         uses: docker/login-action@v3
         with:
           registry: docker.io
@@ -79,18 +77,18 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASS }}
 
       - name: Build Docker image
-        if: ${{ steps.check_version.outputs.version != '' }}
+        if: ${{ steps.semantic_release.outputs.version != '' }}
         run: |
           BUILD_DATE=$(TZ=Europe/Berlin date +"%d.%m.%Y %H:%M")
           docker build \
-            --build-arg VERSION=${{ steps.check_version.outputs.version }} \
+            --build-arg VERSION=${{ steps.semantic_release.outputs.version }} \
             --build-arg BUILD_DATE="${BUILD_DATE}" \
-            -t docker.io/darthkali/weemeal:${{ steps.check_version.outputs.version }} \
+            -t docker.io/darthkali/weemeal:${{ steps.semantic_release.outputs.version }} \
             -t docker.io/darthkali/weemeal:latest \
             .
 
       - name: Push Docker image
-        if: ${{ steps.check_version.outputs.version != '' }}
+        if: ${{ steps.semantic_release.outputs.version != '' }}
         run: |
-          docker push docker.io/darthkali/weemeal:${{ steps.check_version.outputs.version }}
+          docker push docker.io/darthkali/weemeal:${{ steps.semantic_release.outputs.version }}
           docker push docker.io/darthkali/weemeal:latest
