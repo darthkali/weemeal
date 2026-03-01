@@ -19,7 +19,7 @@ services:
 
   # Keycloak for local auth testing
   keycloak:
-    image: quay.io/keycloak/keycloak:24.0
+    image: quay.io/keycloak/keycloak:26.5
     container_name: weemeal-keycloak
     restart: unless-stopped
     command: start-dev --import-realm
