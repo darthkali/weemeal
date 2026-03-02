@@ -85,7 +85,7 @@ interface ImageUploadProps {
     disabled?: boolean;
 }
 
-type UploadPhase = 'idle' | 'validating' | 'converting' | 'compressing' | 'ready' | 'error';
+type UploadPhase = 'idle' | 'validating' | 'converting' | 'compressing' | 'uploading' | 'ready' | 'error';
 
 interface UploadError {
     type: 'size' | 'format' | 'dimensions' | 'network' | 'unknown';
@@ -241,13 +241,40 @@ export default function ImageUpload({
         reader.readAsDataURL(compressedFile);
     }, [validateFile, compressImage]);
 
-    // Handle editor save
-    const handleEditorSave = useCallback((croppedImageUrl: string) => {
-        setPreviewUrl(croppedImageUrl);
-        onChange(croppedImageUrl);
+    // Handle editor save - upload cropped image to server
+    const handleEditorSave = useCallback(async (croppedImageUrl: string) => {
         setIsEditorOpen(false);
         setEditingImageUrl(null);
-        setPhase('ready');
+        setPhase('uploading');
+        setPreviewUrl(croppedImageUrl); // Show preview immediately
+
+        try {
+            const response = await fetch('/api/images', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({dataUrl: croppedImageUrl}),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Upload fehlgeschlagen');
+            }
+
+            const {url} = await response.json();
+            setPreviewUrl(url);
+            onChange(url);
+            setPhase('ready');
+        } catch (e) {
+            console.error('Image upload failed:', e);
+            setError({
+                type: 'network',
+                message: e instanceof Error ? e.message : 'Upload fehlgeschlagen. Bitte erneut versuchen.',
+            });
+            setPhase('error');
+            setPreviewUrl(null);
+        }
     }, [onChange]);
 
     // Handle editor cancel
@@ -323,6 +350,8 @@ export default function ImageUpload({
                 return 'Bild wird ueberprueft...';
             case 'compressing':
                 return `Bild wird optimiert... ${progress}%`;
+            case 'uploading':
+                return 'Bild wird hochgeladen...';
             case 'ready':
                 return 'Erfolgreich hochgeladen!';
             case 'error':
@@ -412,7 +441,7 @@ export default function ImageUpload({
                         </div>
 
                         {/* Processing indicator */}
-                        {(phase === 'converting' || phase === 'validating' || phase === 'compressing') && (
+                        {(phase === 'converting' || phase === 'validating' || phase === 'compressing' || phase === 'uploading') && (
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                 <div className="text-center text-white">
                                     <FontAwesomeIcon icon={faSpinner} className="w-8 h-8 animate-spin mb-2"/>
@@ -477,7 +506,7 @@ export default function ImageUpload({
                                     Erneut versuchen
                                 </button>
                             </div>
-                        ) : phase === 'converting' || phase === 'validating' || phase === 'compressing' ? (
+                        ) : phase === 'converting' || phase === 'validating' || phase === 'compressing' || phase === 'uploading' ? (
                             <div className="space-y-2">
                                 <p className="text-gray-700 font-medium">{getPhaseText()}</p>
                                 {phase === 'compressing' && (

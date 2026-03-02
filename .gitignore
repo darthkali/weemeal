@@ -40,6 +40,7 @@ next-env.d.ts
 
 # Docker volumes (local data)
 mongodb_data/
+data/
 
 # Vitest
 /vitest.config.ts.timestamp-*

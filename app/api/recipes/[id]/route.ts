@@ -2,6 +2,7 @@ import {NextRequest, NextResponse} from 'next/server';
 import {revalidatePath} from 'next/cache';
 import {recipeRepository} from '@/lib/mongodb/repositories/RecipeRepository';
 import {validateRecipeUpdate} from '@/lib/validations/recipeSchema';
+import {deleteImage, extractImageIdFromUrl, isLocalImageUrl} from '@/lib/images/storage';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -66,11 +67,35 @@ export async function PUT(request: NextRequest, {params}: RouteParams) {
             );
         }
 
+        // Get current recipe to check for image changes
+        const currentRecipe = await recipeRepository.findById(id);
+        if (!currentRecipe) {
+            return NextResponse.json(
+                {error: 'Recipe not found'},
+                {status: 404}
+            );
+        }
+
         // Handle null imageUrl (means: remove the image)
         const validatedData = validation.data!;
         const updateData: Record<string, unknown> = {...validatedData};
         if (validatedData.imageUrl === null) {
             updateData.imageUrl = '';  // Empty string to clear
+        }
+
+        // Check if image is being changed or removed
+        const oldImageUrl = currentRecipe.imageUrl;
+        const newImageUrl = validatedData.imageUrl;
+        const imageChanged = oldImageUrl && oldImageUrl !== newImageUrl;
+
+        // Delete old image if it was a local image and is being replaced/removed
+        if (imageChanged && isLocalImageUrl(oldImageUrl)) {
+            const oldImageId = extractImageIdFromUrl(oldImageUrl);
+            if (oldImageId) {
+                await deleteImage(oldImageId).catch((err) => {
+                    console.warn('Failed to delete old image:', err);
+                });
+            }
         }
 
         const recipe = await recipeRepository.update(id, updateData as Parameters<typeof recipeRepository.update>[1]);
@@ -115,12 +140,33 @@ export async function PUT(request: NextRequest, {params}: RouteParams) {
 export async function DELETE(request: NextRequest, {params}: RouteParams) {
     try {
         const {id} = await params;
-        const deleted = await recipeRepository.delete(id);
 
-        if (!deleted) {
+        // First, get the recipe to check for an associated image
+        const recipe = await recipeRepository.findById(id);
+        if (!recipe) {
             return NextResponse.json(
                 {error: 'Recipe not found'},
                 {status: 404}
+            );
+        }
+
+        // Delete associated image if it's a local image
+        if (recipe.imageUrl && isLocalImageUrl(recipe.imageUrl)) {
+            const imageId = extractImageIdFromUrl(recipe.imageUrl);
+            if (imageId) {
+                await deleteImage(imageId).catch((err) => {
+                    // Log but don't fail the recipe deletion
+                    console.warn('Failed to delete associated image:', err);
+                });
+            }
+        }
+
+        // Delete the recipe
+        const deleted = await recipeRepository.delete(id);
+        if (!deleted) {
+            return NextResponse.json(
+                {error: 'Failed to delete recipe'},
+                {status: 500}
             );
         }
 
