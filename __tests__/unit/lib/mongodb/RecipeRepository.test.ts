@@ -14,6 +14,7 @@ describe('Recipe Model', () => {
         await mongoose.connect(uri);
     }, 60000); // 60 second timeout for MongoMemoryServer startup
 
+
     afterAll(async () => {
         await mongoose.disconnect();
         await mongoServer.stop();
@@ -151,7 +152,7 @@ describe('Recipe Model', () => {
             const updated = await Recipe.findByIdAndUpdate(
                 created._id,
                 {name: 'Updated Name'},
-                {new: true}
+                {returnDocument: 'after'}
             );
 
             expect(updated?.name).toBe('Updated Name');

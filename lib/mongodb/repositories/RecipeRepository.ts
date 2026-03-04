@@ -68,7 +68,7 @@ export class RecipeRepository {
         return Recipe.findByIdAndUpdate(
             id,
             {$set: data},
-            {new: true, runValidators: true}
+            {returnDocument: 'after', runValidators: true}
         ).exec();
     }
 
