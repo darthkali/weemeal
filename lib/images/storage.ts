@@ -12,6 +12,7 @@ const MIME_TYPES: Record<string, string> = {
     '.png': 'image/png',
     '.webp': 'image/webp',
     '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
 };
 
 const EXTENSION_FROM_MIME: Record<string, string> = {
@@ -19,6 +20,7 @@ const EXTENSION_FROM_MIME: Record<string, string> = {
     'image/png': '.png',
     'image/webp': '.webp',
     'image/gif': '.gif',
+    'image/svg+xml': '.svg',
 };
 
 /**
