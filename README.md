@@ -34,7 +34,7 @@ A modern recipe management application with shopping list integration.
 - Tags with AI-powered generation
 - Image upload or AI-powered image search
 - Full-text search functionality
-- Responsive design
+
 - **Seasonal availability**: Automatic season detection based on ingredient availability
   - AI-powered analysis with Claude API (fallback to static mapping)
   - 70+ seasonal ingredients mapped for German regional availability
