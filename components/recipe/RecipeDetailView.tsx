@@ -25,6 +25,7 @@ import RecipeInstructions from '@/components/ui/RecipeInstructions';
 import Modal from '@/components/ui/Modal';
 import DeleteDialog from '@/components/ui/DeleteDialog';
 import RecipeNotes from '@/components/recipe/RecipeNotes';
+import SeasonBadge from '@/components/recipe/SeasonBadge';
 
 // Color palette for placeholder backgrounds
 const PLACEHOLDER_COLORS = [
@@ -192,6 +193,11 @@ export default function RecipeDetailView({recipe}: RecipeDetailViewProps) {
                         <FontAwesomeIcon icon={faCarrot} className="w-3 h-3 mr-1.5"/>
                         {ingredientCount} Zutaten
                     </div>
+                </div>
+
+                {/* Season Badge */}
+                <div className="mb-4">
+                    <SeasonBadge seasons={recipe.seasons} showContext/>
                 </div>
 
                 {/* Tags */}

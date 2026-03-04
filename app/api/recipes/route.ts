@@ -1,6 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {recipeRepository} from '@/lib/mongodb/repositories/RecipeRepository';
 import {validateRecipeInput} from '@/lib/validations/recipeSchema';
+import {generateRecipeSeasons} from '@/lib/utils/generateSeasons';
 
 // GET /api/recipes - Get all recipes
 export async function GET(request: NextRequest) {
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
             ingredientListContent: recipe.ingredientListContent,
             imageUrl: recipe.imageUrl,
             tags: recipe.tags || [],
+            seasons: recipe.seasons || ['Frühling', 'Sommer', 'Herbst', 'Winter'],
             userId: recipe.userId,
             createdAt: recipe.createdAt?.toISOString(),
             updatedAt: recipe.updatedAt?.toISOString(),
@@ -66,6 +68,15 @@ export async function POST(request: NextRequest) {
             delete createData.imageUrl;
         }
 
+        // Generate seasons based on ingredients
+        if (createData.ingredientListContent && createData.ingredientListContent.length > 0) {
+            const seasons = await generateRecipeSeasons({
+                name: createData.name,
+                ingredientListContent: createData.ingredientListContent,
+            });
+            createData.seasons = seasons;
+        }
+
         const recipe = await recipeRepository.create(createData as Parameters<typeof recipeRepository.create>[0]);
 
         const response = {
@@ -76,6 +87,7 @@ export async function POST(request: NextRequest) {
             ingredientListContent: recipe.ingredientListContent,
             imageUrl: recipe.imageUrl,
             tags: recipe.tags || [],
+            seasons: recipe.seasons || ['Frühling', 'Sommer', 'Herbst', 'Winter'],
             userId: recipe.userId,
             createdAt: recipe.createdAt?.toISOString(),
             updatedAt: recipe.updatedAt?.toISOString(),

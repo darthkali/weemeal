@@ -23,9 +23,13 @@ import {
     faUtensils,
 } from '@fortawesome/free-solid-svg-icons';
 import {v4 as uuidv4} from 'uuid';
-import {IngredientListContent, RecipeResponse} from '@/types/recipe';
+import {IngredientListContent, RecipeResponse, SEASONS} from '@/types/recipe';
 import PortionControl from '@/components/ui/PortionControl';
 import ImageUpload from '@/components/ui/ImageUpload';
+import SeasonDisplay from '@/components/recipe/SeasonDisplay';
+
+// Season names that should not be allowed as tags
+const SEASON_WORDS = SEASONS.map(s => s.toLowerCase());
 
 interface RecipeFormViewProps {
     recipe?: RecipeResponse;
@@ -52,6 +56,8 @@ export default function RecipeFormView({
     const [tags, setTags] = useState<string[]>(recipe?.tags || []);
     const [newTag, setNewTag] = useState('');
     const [isGeneratingTags, setIsGeneratingTags] = useState(false);
+    const [seasons, setSeasons] = useState<string[]>(recipe?.seasons || []);
+    const [isRegeneratingSeasons, setIsRegeneratingSeasons] = useState(false);
 
     // Source state
     const [sourceType, setSourceType] = useState<'none' | 'book' | 'url'>(
@@ -124,9 +130,21 @@ export default function RecipeFormView({
     // Tag management
     const handleAddTag = useCallback(() => {
         const trimmedTag = newTag.trim();
-        if (trimmedTag && !tags.includes(trimmedTag)) {
+        if (!trimmedTag) return;
+
+        // Prevent season names as tags
+        if (SEASON_WORDS.includes(trimmedTag.toLowerCase())) {
+            setErrors(prev => ({...prev, tags: 'Saisons werden automatisch berechnet und koennen nicht als Tags verwendet werden'}));
+            return;
+        }
+
+        if (!tags.includes(trimmedTag)) {
             setTags(prev => [...prev, trimmedTag]);
             setNewTag('');
+            setErrors(prev => {
+                const {tags: _tagsError, ...rest} = prev;
+                return rest;
+            });
         }
     }, [newTag, tags]);
 
@@ -158,9 +176,11 @@ export default function RecipeFormView({
 
             if (response.ok) {
                 const data = await response.json();
-                // Merge with existing tags, avoiding duplicates
+                // Merge with existing tags, avoiding duplicates and filtering out season names
                 setTags(prev => {
-                    const newTags = data.tags.filter((t: string) => !prev.includes(t));
+                    const newTags = data.tags
+                        .filter((t: string) => !prev.includes(t))
+                        .filter((t: string) => !SEASON_WORDS.includes(t.toLowerCase()));
                     return [...prev, ...newTags];
                 });
             } else {
@@ -180,6 +200,32 @@ export default function RecipeFormView({
             handleAddTag();
         }
     }, [handleAddTag]);
+
+    const handleRegenerateSeasons = useCallback(async () => {
+        if (ingredientListContent.length === 0) return;
+
+        setIsRegeneratingSeasons(true);
+
+        try {
+            const response = await fetch('/api/recipes/generate-seasons', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: name.trim(),
+                    ingredients: ingredientListContent,
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setSeasons(data.seasons);
+            }
+        } catch (error) {
+            console.error('Error regenerating seasons:', error);
+        } finally {
+            setIsRegeneratingSeasons(false);
+        }
+    }, [name, ingredientListContent]);
 
     const validate = useCallback(() => {
         const newErrors: Record<string, string> = {};
@@ -409,6 +455,15 @@ export default function RecipeFormView({
                         <p className="text-error text-sm mt-2">{errors.tags}</p>
                     )}
                 </div>
+
+                {/* Seasons */}
+                <SeasonDisplay
+                    seasons={seasons}
+                    isRegenerating={isRegeneratingSeasons}
+                    onRegenerate={handleRegenerateSeasons}
+                    hasIngredients={ingredientListContent.filter(c => c.contentType === 'INGREDIENT').length > 0}
+                    isNewRecipe={!isEditing}
+                />
 
                 {/* Source / Originalquelle */}
                 <div className="mb-6">

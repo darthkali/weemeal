@@ -3,6 +3,7 @@ import {revalidatePath} from 'next/cache';
 import {recipeRepository} from '@/lib/mongodb/repositories/RecipeRepository';
 import {validateRecipeUpdate} from '@/lib/validations/recipeSchema';
 import {deleteImage, extractImageIdFromUrl, isLocalImageUrl} from '@/lib/images/storage';
+import {generateRecipeSeasons} from '@/lib/utils/generateSeasons';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest, {params}: RouteParams) {
             ingredientListContent: recipe.ingredientListContent,
             imageUrl: recipe.imageUrl,
             tags: recipe.tags || [],
+            seasons: recipe.seasons || ['Frühling', 'Sommer', 'Herbst', 'Winter'],
             notes: recipe.notes || '',
             source: recipe.source || null,
             userId: recipe.userId,
@@ -98,6 +100,16 @@ export async function PUT(request: NextRequest, {params}: RouteParams) {
             }
         }
 
+        // Recalculate seasons if ingredients changed
+        if (validatedData.ingredientListContent) {
+            const recipeName = validatedData.name || currentRecipe.name;
+            const seasons = await generateRecipeSeasons({
+                name: recipeName,
+                ingredientListContent: validatedData.ingredientListContent,
+            });
+            updateData.seasons = seasons;
+        }
+
         const recipe = await recipeRepository.update(id, updateData as Parameters<typeof recipeRepository.update>[1]);
 
         if (!recipe) {
@@ -119,6 +131,7 @@ export async function PUT(request: NextRequest, {params}: RouteParams) {
             ingredientListContent: recipe.ingredientListContent,
             imageUrl: recipe.imageUrl,
             tags: recipe.tags || [],
+            seasons: recipe.seasons || ['Frühling', 'Sommer', 'Herbst', 'Winter'],
             notes: recipe.notes || '',
             source: recipe.source || null,
             userId: recipe.userId,

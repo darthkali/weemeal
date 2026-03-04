@@ -3,16 +3,58 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Link from 'next/link';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faBookOpen, faPlus, faSearch} from '@fortawesome/free-solid-svg-icons';
-import {RecipeResponse} from '@/types/recipe';
+import {faBookOpen, faPlus} from '@fortawesome/free-solid-svg-icons';
+import {RecipeResponse, Season} from '@/types/recipe';
 import RecipeGrid from '@/components/recipe/RecipeGrid';
 import RecipeSearchBar from '@/components/recipe/RecipeSearchBar';
+import SeasonSelector from '@/components/recipe/SeasonSelector';
+
+const ALL_SEASONS: Season[] = ['Frühling', 'Sommer', 'Herbst', 'Winter'];
+const STORAGE_KEY_SEASON_FILTER = 'weemeal-season-filter-v2';
+
+type SeasonFilterOption = 'all' | 'current' | Season;
+
+function getCurrentSeason(): Season {
+    const month = new Date().getMonth() + 1;
+    if (month >= 3 && month <= 5) return 'Frühling';
+    if (month >= 6 && month <= 8) return 'Sommer';
+    if (month >= 9 && month <= 11) return 'Herbst';
+    return 'Winter';
+}
+
+function loadSeasonFilterFromStorage(): SeasonFilterOption {
+    if (typeof window === 'undefined') return 'all';
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY_SEASON_FILTER);
+        if (stored) {
+            // Validate the stored value
+            if (stored === 'all' || stored === 'current' || ALL_SEASONS.includes(stored as Season)) {
+                return stored as SeasonFilterOption;
+            }
+        }
+    } catch {
+        // Ignore storage errors
+    }
+    return 'all';
+}
+
+function saveSeasonFilterToStorage(value: SeasonFilterOption): void {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(STORAGE_KEY_SEASON_FILTER, value);
+    } catch {
+        // Ignore storage errors
+    }
+}
 
 export default function HomePage() {
     const [recipes, setRecipes] = useState<RecipeResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [seasonFilter, setSeasonFilter] = useState<SeasonFilterOption>('all');
+    const [currentSeason] = useState<Season>(getCurrentSeason);
+    const [filterInitialized, setFilterInitialized] = useState(false);
     const hasFetchedOnce = useRef(false);
 
     const fetchRecipes = useCallback(async (showLoading = true) => {
@@ -40,6 +82,19 @@ export default function HomePage() {
         hasFetchedOnce.current = true;
     }, [fetchRecipes]);
 
+    // Load filter state from localStorage on mount
+    useEffect(() => {
+        const storedFilter = loadSeasonFilterFromStorage();
+        setSeasonFilter(storedFilter);
+        setFilterInitialized(true);
+    }, []);
+
+    // Save filter state to localStorage when it changes
+    useEffect(() => {
+        if (!filterInitialized) return;
+        saveSeasonFilterToStorage(seasonFilter);
+    }, [seasonFilter, filterInitialized]);
+
     // Re-fetch when page becomes visible (user navigates back)
     useEffect(() => {
         const handleVisibilityChange = () => {
@@ -58,23 +113,38 @@ export default function HomePage() {
         setSearchQuery(query);
     }, []);
 
+    const handleSeasonFilterChange = useCallback((value: SeasonFilterOption) => {
+        setSeasonFilter(value);
+    }, []);
+
     const filteredRecipes = useMemo(() => {
-        if (!searchQuery.trim()) {
-            return recipes;
+        let filtered = recipes;
+
+        // Filter by search query
+        if (searchQuery.trim()) {
+            const lowerQuery = searchQuery.toLowerCase();
+            filtered = filtered.filter((recipe) => {
+                if (recipe.name.toLowerCase().includes(lowerQuery)) {
+                    return true;
+                }
+                if (recipe.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))) {
+                    return true;
+                }
+                return false;
+            });
         }
-        const lowerQuery = searchQuery.toLowerCase();
-        return recipes.filter((recipe) => {
-            // Search in name
-            if (recipe.name.toLowerCase().includes(lowerQuery)) {
-                return true;
-            }
-            // Search in tags
-            if (recipe.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))) {
-                return true;
-            }
-            return false;
-        });
-    }, [recipes, searchQuery]);
+
+        // Filter by season
+        if (seasonFilter !== 'all') {
+            const targetSeason = seasonFilter === 'current' ? currentSeason : seasonFilter;
+            filtered = filtered.filter((recipe) => {
+                const recipeSeasons = recipe.seasons || ALL_SEASONS;
+                return recipeSeasons.includes(targetSeason);
+            });
+        }
+
+        return filtered;
+    }, [recipes, searchQuery, seasonFilter, currentSeason]);
 
     if (isLoading) {
         return (
@@ -144,19 +214,43 @@ export default function HomePage() {
 
             {/* Search & Filter Section */}
             {recipes.length > 0 && (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-                    <div className="flex-1 max-w-lg">
-                        <RecipeSearchBar onSearch={handleSearch}/>
+                <div className="space-y-3">
+                    {/* Filter Row */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <div className="flex-1 max-w-lg">
+                            <RecipeSearchBar onSearch={handleSearch}/>
+                        </div>
+
+                        {/* Season Filter */}
+                        <SeasonSelector
+                            value={seasonFilter}
+                            onChange={handleSeasonFilterChange}
+                            currentSeason={currentSeason}
+                        />
                     </div>
 
-                    {searchQuery && (
-                        <div className="flex items-center gap-2 text-sm text-text-muted">
-                            <FontAwesomeIcon icon={faSearch} className="w-3.5 h-3.5"/>
-                            <span>
-                                {filteredRecipes.length} Ergebnis{filteredRecipes.length !== 1 ? 'se' : ''}
-                                {' '}fuer &quot;{searchQuery}&quot;
-                            </span>
-                        </div>
+                    {/* Results Context - nur bei aktivem Filter */}
+                    {(searchQuery || seasonFilter !== 'all') && (
+                        <p className="text-sm text-text-muted">
+                            <span className="font-medium text-text-dark">{filteredRecipes.length}</span>
+                            {' '}von{' '}
+                            <span>{recipes.length}</span>
+                            {' '}{recipes.length === 1 ? 'Rezept' : 'Rezepten'}
+                            {searchQuery && (
+                                <>
+                                    {' '}für{' '}
+                                    <span className="font-medium text-text-dark">&quot;{searchQuery}&quot;</span>
+                                </>
+                            )}
+                            {seasonFilter !== 'all' && (
+                                <>
+                                    {' '}passend für{' '}
+                                    <span className="font-medium text-text-dark">
+                                        {seasonFilter === 'current' ? currentSeason : seasonFilter}
+                                    </span>
+                                </>
+                            )}
+                        </p>
                     )}
                 </div>
             )}
