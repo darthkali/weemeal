@@ -52,7 +52,7 @@
     "autoprefixer": "^10.4.27",
     "eslint": "^10.0.2",
     "eslint-config-next": "^16.1.6",
-    "jsdom": "^28.1.0",
+    "jsdom": "^29.0.0",
     "mongodb-memory-server": "^11.0.1",
     "msw": "^2.12.10",
     "next-test-api-route-handler": "^5.0.3",
