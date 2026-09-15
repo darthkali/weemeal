@@ -13,23 +13,17 @@ import {
     faGripVertical,
     faImage,
     faLayerGroup,
-    faMagicWandSparkles,
     faPlus,
     faSave,
-    faSpinner,
     faTags,
     faTimes,
     faTrash,
     faUtensils,
 } from '@fortawesome/free-solid-svg-icons';
 import {v4 as uuidv4} from 'uuid';
-import {IngredientListContent, RecipeResponse, SEASONS} from '@/types/recipe';
+import {IngredientListContent, RecipeResponse} from '@/types/recipe';
 import PortionControl from '@/components/ui/PortionControl';
 import ImageUpload from '@/components/ui/ImageUpload';
-import SeasonDisplay from '@/components/recipe/SeasonDisplay';
-
-// Season names that should not be allowed as tags
-const SEASON_WORDS = SEASONS.map(s => s.toLowerCase());
 
 interface RecipeFormViewProps {
     recipe?: RecipeResponse;
@@ -55,9 +49,6 @@ export default function RecipeFormView({
     const [imageUrl, setImageUrl] = useState(recipe?.imageUrl || '');
     const [tags, setTags] = useState<string[]>(recipe?.tags || []);
     const [newTag, setNewTag] = useState('');
-    const [isGeneratingTags, setIsGeneratingTags] = useState(false);
-    const [seasons, setSeasons] = useState<string[]>(recipe?.seasons || []);
-    const [isRegeneratingSeasons, setIsRegeneratingSeasons] = useState(false);
 
     // Source state
     const [sourceType, setSourceType] = useState<'none' | 'book' | 'url'>(
@@ -132,12 +123,6 @@ export default function RecipeFormView({
         const trimmedTag = newTag.trim();
         if (!trimmedTag) return;
 
-        // Prevent season names as tags
-        if (SEASON_WORDS.includes(trimmedTag.toLowerCase())) {
-            setErrors(prev => ({...prev, tags: 'Saisons werden automatisch berechnet und koennen nicht als Tags verwendet werden'}));
-            return;
-        }
-
         if (!tags.includes(trimmedTag)) {
             setTags(prev => [...prev, trimmedTag]);
             setNewTag('');
@@ -152,80 +137,12 @@ export default function RecipeFormView({
         setTags(prev => prev.filter(tag => tag !== tagToRemove));
     }, []);
 
-    const handleGenerateTags = useCallback(async () => {
-        if (!name.trim()) {
-            setErrors(prev => ({...prev, tags: 'Bitte zuerst einen Rezeptnamen eingeben'}));
-            return;
-        }
-
-        setIsGeneratingTags(true);
-        setErrors(prev => {
-            const {tags: _tagsError, ...rest} = prev;
-            return rest;
-        });
-
-        try {
-            const response = await fetch('/api/recipes/generate-tags', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    name: name.trim(),
-                    ingredients: ingredientListContent,
-                }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                // Merge with existing tags, avoiding duplicates and filtering out season names
-                setTags(prev => {
-                    const newTags = data.tags
-                        .filter((t: string) => !prev.includes(t))
-                        .filter((t: string) => !SEASON_WORDS.includes(t.toLowerCase()));
-                    return [...prev, ...newTags];
-                });
-            } else {
-                setErrors(prev => ({...prev, tags: 'Fehler beim Generieren der Tags'}));
-            }
-        } catch (error) {
-            console.error('Error generating tags:', error);
-            setErrors(prev => ({...prev, tags: 'Fehler beim Generieren der Tags'}));
-        } finally {
-            setIsGeneratingTags(false);
-        }
-    }, [name, ingredientListContent]);
-
     const handleTagKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             handleAddTag();
         }
     }, [handleAddTag]);
-
-    const handleRegenerateSeasons = useCallback(async () => {
-        if (ingredientListContent.length === 0) return;
-
-        setIsRegeneratingSeasons(true);
-
-        try {
-            const response = await fetch('/api/recipes/generate-seasons', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    name: name.trim(),
-                    ingredients: ingredientListContent,
-                }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setSeasons(data.seasons);
-            }
-        } catch (error) {
-            console.error('Error regenerating seasons:', error);
-        } finally {
-            setIsRegeneratingSeasons(false);
-        }
-    }, [name, ingredientListContent]);
 
     const validate = useCallback(() => {
         const newErrors: Record<string, string> = {};
@@ -383,30 +300,10 @@ export default function RecipeFormView({
 
                 {/* Tags */}
                 <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <label className="block text-sm font-medium text-text-dark">
-                            <FontAwesomeIcon icon={faTags} className="w-3.5 h-3.5 mr-1.5 text-text-muted"/>
-                            Tags
-                        </label>
-                        <button
-                            type="button"
-                            onClick={handleGenerateTags}
-                            disabled={isGeneratingTags || !name.trim()}
-                            className="text-xs font-medium text-primary hover:text-primary-hover disabled:text-gray-400 flex items-center gap-1.5 transition-colors"
-                        >
-                            {isGeneratingTags ? (
-                                <>
-                                    <FontAwesomeIcon icon={faSpinner} className="w-3 h-3 animate-spin"/>
-                                    Generiere...
-                                </>
-                            ) : (
-                                <>
-                                    <FontAwesomeIcon icon={faMagicWandSparkles} className="w-3 h-3"/>
-                                    Auto-generieren
-                                </>
-                            )}
-                        </button>
-                    </div>
+                    <label className="block text-sm font-medium text-text-dark mb-2">
+                        <FontAwesomeIcon icon={faTags} className="w-3.5 h-3.5 mr-1.5 text-text-muted"/>
+                        Tags
+                    </label>
 
                     {/* Tag chips */}
                     <div className="flex flex-wrap gap-2 mb-3">
@@ -456,14 +353,6 @@ export default function RecipeFormView({
                     )}
                 </div>
 
-                {/* Seasons */}
-                <SeasonDisplay
-                    seasons={seasons}
-                    isRegenerating={isRegeneratingSeasons}
-                    onRegenerate={handleRegenerateSeasons}
-                    hasIngredients={ingredientListContent.filter(c => c.contentType === 'INGREDIENT').length > 0}
-                    isNewRecipe={!isEditing}
-                />
 
                 {/* Source / Originalquelle */}
                 <div className="mb-6">

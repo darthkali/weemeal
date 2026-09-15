@@ -35,12 +35,6 @@ A modern recipe management application with shopping list integration.
 - Image upload or AI-powered image search
 - Full-text search functionality
 
-- **Seasonal availability**: Automatic season detection based on ingredient availability
-  - AI-powered analysis with Claude API (fallback to static mapping)
-  - 70+ seasonal ingredients mapped for German regional availability
-  - Season filter on homepage with localStorage persistence
-  - "Gemischte Saison" indicator for recipes with conflicting seasonal ingredients
-
 ## Requirements
 
 - Node.js 18+
@@ -93,10 +87,6 @@ KEYCLOAK_ISSUER=http://localhost:8080/realms/weemeal
 
 # App
 NEXT_PUBLIC_APP_VERSION=1.0.0-dev
-
-# AI Features (optional - enables AI-powered season detection and tag generation)
-ANTHROPIC_API_KEY=your-anthropic-api-key
-
 # Admin Endpoints
 ADMIN_SECRET=your-admin-secret
 ```
@@ -161,9 +151,7 @@ npm run docker:reset  # Stop and remove volumes
 | PATCH  | `/api/recipes/[id]/source`      | Update recipe source             |
 | GET    | `/api/recipes/[id]/image`       | Generate/fetch recipe image      |
 | POST   | `/api/recipes/generate-tags`    | Generate tags with AI            |
-| POST   | `/api/recipes/generate-seasons` | Generate seasons for ingredients |
 | GET    | `/api/recipes/bring/[id]`       | Get Schema.org HTML for Bring!   |
-| POST   | `/api/admin/migrate-seasons`    | Migrate seasons for all recipes  |
 
 ## Data Migration
 
@@ -177,17 +165,6 @@ To migrate data from the old PostgreSQL database:
 
 ## Admin Endpoints
 
-### Migrate Seasons
-
-Update seasonal availability for all recipes:
-
-```bash
-# Only recipes without seasons
-curl -X POST "https://your-domain/api/admin/migrate-seasons?secret=ADMIN_SECRET"
-
-# Force recalculate all recipes
-curl -X POST "https://your-domain/api/admin/migrate-seasons?secret=ADMIN_SECRET&force=true"
-```
 
 ## Docker Services
 

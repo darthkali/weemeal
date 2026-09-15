@@ -25,9 +25,6 @@ export interface IRecipeSource {
     url?: string;
 }
 
-export const SEASONS = ['Frühling', 'Sommer', 'Herbst', 'Winter'] as const;
-export type Season = typeof SEASONS[number];
-
 export interface IRecipe {
     name: string;
     recipeYield: number;
@@ -35,7 +32,6 @@ export interface IRecipe {
     ingredientListContent: IIngredientListContent[];
     imageUrl?: string;
     tags?: string[];
-    seasons?: string[];
     notes?: string;
     source?: IRecipeSource;
     userId?: string;
@@ -94,12 +90,6 @@ const RecipeSchema = new Schema<IRecipeDocument>(
         tags: {
             type: [String],
             default: [],
-            index: true,
-        },
-        seasons: {
-            type: [String],
-            default: ['Frühling', 'Sommer', 'Herbst', 'Winter'],
-            enum: ['Frühling', 'Sommer', 'Herbst', 'Winter'],
             index: true,
         },
         notes: {

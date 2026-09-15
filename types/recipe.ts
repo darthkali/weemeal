@@ -29,9 +29,6 @@ export interface RecipeSource {
     url?: string;
 }
 
-export const SEASONS = ['Frühling', 'Sommer', 'Herbst', 'Winter'] as const;
-export type Season = typeof SEASONS[number];
-
 export interface Recipe {
     _id?: ObjectId | string;
     name: string;
@@ -40,7 +37,6 @@ export interface Recipe {
     ingredientListContent: IngredientListContent[];
     imageUrl?: string;
     tags?: string[];
-    seasons?: string[];
     notes?: string;
     source?: RecipeSource;
     userId?: string;
@@ -57,7 +53,6 @@ export interface RecipeResponse extends Omit<Recipe, '_id' | 'createdAt' | 'upda
     _id: string;
     imageUrl?: string;
     tags?: string[];
-    seasons?: string[];
     notes?: string;
     source?: RecipeSource;
     createdAt?: string;

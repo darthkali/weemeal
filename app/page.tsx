@@ -4,57 +4,15 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Link from 'next/link';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faBookOpen, faPlus} from '@fortawesome/free-solid-svg-icons';
-import {RecipeResponse, Season} from '@/types/recipe';
+import {RecipeResponse} from '@/types/recipe';
 import RecipeGrid from '@/components/recipe/RecipeGrid';
 import RecipeSearchBar from '@/components/recipe/RecipeSearchBar';
-import SeasonSelector from '@/components/recipe/SeasonSelector';
-
-const ALL_SEASONS: Season[] = ['Frühling', 'Sommer', 'Herbst', 'Winter'];
-const STORAGE_KEY_SEASON_FILTER = 'weemeal-season-filter-v2';
-
-type SeasonFilterOption = 'all' | 'current' | Season;
-
-function getCurrentSeason(): Season {
-    const month = new Date().getMonth() + 1;
-    if (month >= 3 && month <= 5) return 'Frühling';
-    if (month >= 6 && month <= 8) return 'Sommer';
-    if (month >= 9 && month <= 11) return 'Herbst';
-    return 'Winter';
-}
-
-function loadSeasonFilterFromStorage(): SeasonFilterOption {
-    if (typeof window === 'undefined') return 'all';
-    try {
-        const stored = localStorage.getItem(STORAGE_KEY_SEASON_FILTER);
-        if (stored) {
-            // Validate the stored value
-            if (stored === 'all' || stored === 'current' || ALL_SEASONS.includes(stored as Season)) {
-                return stored as SeasonFilterOption;
-            }
-        }
-    } catch {
-        // Ignore storage errors
-    }
-    return 'all';
-}
-
-function saveSeasonFilterToStorage(value: SeasonFilterOption): void {
-    if (typeof window === 'undefined') return;
-    try {
-        localStorage.setItem(STORAGE_KEY_SEASON_FILTER, value);
-    } catch {
-        // Ignore storage errors
-    }
-}
 
 export default function HomePage() {
     const [recipes, setRecipes] = useState<RecipeResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [seasonFilter, setSeasonFilter] = useState<SeasonFilterOption>('all');
-    const [currentSeason] = useState<Season>(getCurrentSeason);
-    const [filterInitialized, setFilterInitialized] = useState(false);
     const hasFetchedOnce = useRef(false);
 
     const fetchRecipes = useCallback(async (showLoading = true) => {
@@ -82,19 +40,6 @@ export default function HomePage() {
         hasFetchedOnce.current = true;
     }, [fetchRecipes]);
 
-    // Load filter state from localStorage on mount
-    useEffect(() => {
-        const storedFilter = loadSeasonFilterFromStorage();
-        setSeasonFilter(storedFilter);
-        setFilterInitialized(true);
-    }, []);
-
-    // Save filter state to localStorage when it changes
-    useEffect(() => {
-        if (!filterInitialized) return;
-        saveSeasonFilterToStorage(seasonFilter);
-    }, [seasonFilter, filterInitialized]);
-
     // Re-fetch when page becomes visible (user navigates back)
     useEffect(() => {
         const handleVisibilityChange = () => {
@@ -113,10 +58,6 @@ export default function HomePage() {
         setSearchQuery(query);
     }, []);
 
-    const handleSeasonFilterChange = useCallback((value: SeasonFilterOption) => {
-        setSeasonFilter(value);
-    }, []);
-
     const filteredRecipes = useMemo(() => {
         let filtered = recipes;
 
@@ -127,24 +68,12 @@ export default function HomePage() {
                 if (recipe.name.toLowerCase().includes(lowerQuery)) {
                     return true;
                 }
-                if (recipe.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))) {
-                    return true;
-                }
-                return false;
-            });
-        }
-
-        // Filter by season
-        if (seasonFilter !== 'all') {
-            const targetSeason = seasonFilter === 'current' ? currentSeason : seasonFilter;
-            filtered = filtered.filter((recipe) => {
-                const recipeSeasons = recipe.seasons || ALL_SEASONS;
-                return recipeSeasons.includes(targetSeason);
+                return !!recipe.tags?.some(tag => tag.toLowerCase().includes(lowerQuery));
             });
         }
 
         return filtered;
-    }, [recipes, searchQuery, seasonFilter, currentSeason]);
+    }, [recipes, searchQuery]);
 
     if (isLoading) {
         return (
@@ -220,17 +149,10 @@ export default function HomePage() {
                         <div className="flex-1 max-w-lg">
                             <RecipeSearchBar onSearch={handleSearch}/>
                         </div>
-
-                        {/* Season Filter */}
-                        <SeasonSelector
-                            value={seasonFilter}
-                            onChange={handleSeasonFilterChange}
-                            currentSeason={currentSeason}
-                        />
                     </div>
 
                     {/* Results Context - nur bei aktivem Filter */}
-                    {(searchQuery || seasonFilter !== 'all') && (
+                    {(searchQuery) && (
                         <p className="text-sm text-text-muted">
                             <span className="font-medium text-text-dark">{filteredRecipes.length}</span>
                             {' '}von{' '}
@@ -240,14 +162,6 @@ export default function HomePage() {
                                 <>
                                     {' '}für{' '}
                                     <span className="font-medium text-text-dark">&quot;{searchQuery}&quot;</span>
-                                </>
-                            )}
-                            {seasonFilter !== 'all' && (
-                                <>
-                                    {' '}passend für{' '}
-                                    <span className="font-medium text-text-dark">
-                                        {seasonFilter === 'current' ? currentSeason : seasonFilter}
-                                    </span>
                                 </>
                             )}
                         </p>

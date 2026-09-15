@@ -6,7 +6,6 @@ import Link from 'next/link';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCarrot, faUsers, faUtensils} from '@fortawesome/free-solid-svg-icons';
 import {RecipeResponse} from '@/types/recipe';
-import SeasonBadge from './SeasonBadge';
 
 interface RecipeCardProps {
     recipe: RecipeResponse;
@@ -102,11 +101,6 @@ export default function RecipeCard({recipe, priority = false}: RecipeCardProps) 
                             )}
                         </div>
                     )}
-
-                    {/* Season Badge (compact - only shown if not year-round) */}
-                    <div className="mb-3">
-                        <SeasonBadge seasons={recipe.seasons} compact/>
-                    </div>
 
                     {/* Meta Info */}
                     <div className="flex items-center gap-4 mt-auto">

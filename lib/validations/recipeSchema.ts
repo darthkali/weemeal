@@ -1,8 +1,5 @@
 import {z} from 'zod';
 
-export const SeasonEnum = z.enum(['Frühling', 'Sommer', 'Herbst', 'Winter']);
-export const SeasonsSchema = z.array(SeasonEnum).default(['Frühling', 'Sommer', 'Herbst', 'Winter']);
-
 export const IngredientSchema = z.object({
     contentId: z.string().min(1),
     contentType: z.literal('INGREDIENT'),
@@ -57,7 +54,6 @@ export const RecipeInputSchema = z.object({
     ingredientListContent: z.array(IngredientListContentSchema).default([]),
     imageUrl: z.string().nullable().optional(),
     tags: z.array(z.string().max(25)).max(10).default([]),
-    seasons: SeasonsSchema.optional(),
     notes: z.string().max(5000).default(''),
     source: RecipeSourceSchema.nullable().optional(),
     userId: z.string().optional(),

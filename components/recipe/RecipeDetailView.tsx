@@ -25,7 +25,6 @@ import RecipeInstructions from '@/components/ui/RecipeInstructions';
 import Modal from '@/components/ui/Modal';
 import DeleteDialog from '@/components/ui/DeleteDialog';
 import RecipeNotes from '@/components/recipe/RecipeNotes';
-import SeasonBadge from '@/components/recipe/SeasonBadge';
 
 // Color palette for placeholder backgrounds
 const PLACEHOLDER_COLORS = [
@@ -194,12 +193,6 @@ export default function RecipeDetailView({recipe}: RecipeDetailViewProps) {
                         {ingredientCount} Zutaten
                     </div>
                 </div>
-
-                {/* Season Badge */}
-                <div className="mb-4">
-                    <SeasonBadge seasons={recipe.seasons} showContext/>
-                </div>
-
                 {/* Tags */}
                 {recipe.tags && recipe.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
