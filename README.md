@@ -11,14 +11,8 @@ A modern recipe management application with shopping list integration.
 
 ![Bildschirmfoto 2026-03-01 um 12.11.43.png](docs/images/Bildschirmfoto%202026-03-01%20um%2012.11.43.png)
 
-## Tech Stack
-
-- **Framework**: Next.js 16+ (App Router, Turbopack)
-- **Database**: MongoDB (Mongoose ODM)
-- **Styling**: Tailwind CSS
-- **Drag & Drop**: @hello-pangea/dnd
-- **Testing**: Vitest + Testing Library
-- **Language**: TypeScript
+This README covers **running WeeMeal from the Docker image**. To work on the
+code instead, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Features
 
@@ -35,153 +29,132 @@ A modern recipe management application with shopping list integration.
 - Full-text search functionality
 - Switchable authentication: no login, local users, or Keycloak (see below)
 
-## Roadmap
+## What you need
 
-- Keycloak login (OIDC) — the `keycloak` auth mode is specified but not wired up yet
+- A container runtime (Docker or Podman)
+- A MongoDB instance WeeMeal can reach
+- A volume for the recipe images, so they survive a container restart
 
-## Requirements
+## Quick start
 
-- Node.js 18+
-- Docker & Docker Compose
-
-## Getting Started
-
-### 1. Start Docker Services
+The image is `darthkali/weemeal` on
+[Docker Hub](https://hub.docker.com/r/darthkali/weemeal).
 
 ```bash
-docker-compose up -d
+docker run -d \
+  --name weemeal \
+  -p 3000:3000 \
+  -e MONGODB_URI="mongodb://user:pass@mongo:27017/weemeal?authSource=admin" \
+  -e IMAGES_DIR=/data/images \
+  -v weemeal_images:/data/images \
+  darthkali/weemeal:latest
 ```
 
-This starts:
+WeeMeal is then at `http://localhost:3000`. With no `AUTH_MODE` set it runs
+**without any login** — read [Authentication](#authentication) before putting it
+on a network other people can reach.
 
-- **MongoDB** at `localhost:27017`
-- **Mongo Express** (DB UI) at `http://localhost:8081`
+### With Docker Compose
 
-### 2. Install Dependencies
+```yaml
+services:
+  weemeal:
+    image: darthkali/weemeal:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: mongodb://weemeal:change-me@mongodb:27017/weemeal?authSource=admin
+      IMAGES_DIR: /data/images
+      # Leave AUTH_MODE unset for an open instance, or configure a mode below.
+      AUTH_MODE: local
+      AUTH_SECRET: <openssl rand -base64 32>
+      AUTH_URL: https://weemeal.example.com
+      SEED_ADMIN_USER: root
+      SEED_ADMIN_PASSWORD: <12-72 chars, upper + lower + digit + special>
+    volumes:
+      - weemeal_images:/data/images
+    depends_on:
+      - mongodb
 
-```bash
-npm install
+  mongodb:
+    image: mongo:8
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: weemeal
+      MONGO_INITDB_ROOT_PASSWORD: change-me
+      MONGO_INITDB_DATABASE: weemeal
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  weemeal_images:
+  mongodb_data:
 ```
 
-### 3. Start Development Server
-
-```bash
-npm run dev
-```
-
-The app will be available at `http://localhost:3000`.
+The container listens on port **3000** and runs as an unprivileged user
+(uid 1001) — a mounted image directory has to be writable by it.
 
 ## Environment Variables
 
-The project uses `.env.local` (or `.env`) for local development; `.env.example`
-lists every variable. Only `MONGODB_URI` is always required — everything else
-depends on the auth mode you pick.
+Only `MONGODB_URI` is always required. Everything else depends on the auth mode
+you pick.
 
 ### Always
 
-| Variable                    | Required | Description                                                        |
-|-----------------------------|----------|--------------------------------------------------------------------|
-| `MONGODB_URI`               | yes      | MongoDB connection string.                                          |
-| `IMAGES_DIR`                | no       | Where recipe images are stored. Default `./data/images`.            |
-| `NEXT_PUBLIC_APP_VERSION`   | no       | Version shown in the footer.                                        |
-| `ADMIN_SECRET`              | no       | Protects `/api/admin/migrate-images` (a one-off maintenance route). |
+| Variable        | Required | Description                                                         |
+|-----------------|----------|---------------------------------------------------------------------|
+| `MONGODB_URI`   | yes      | MongoDB connection string.                                          |
+| `IMAGES_DIR`    | no       | Where recipe images are stored. Default `./data/images` — point it at your mounted volume, otherwise the images go with the container. |
+| `PORT`          | no       | Port inside the container. Default `3000`.                          |
+| `ADMIN_SECRET`  | no       | Protects `/api/admin/migrate-images` (a one-off maintenance route). |
 
 ### Authentication
 
 `AUTH_MODE` picks one of three modes per deployment and decides which of the
-remaining variables you need. It is read at runtime, so the same Docker image
-can run any mode.
+remaining variables you need. It is read at runtime, so the same image can run
+any mode.
 
-| Variable    | Values                        | Default |
-|-------------|-------------------------------|---------|
+| Variable    | Values                          | Default |
+|-------------|---------------------------------|---------|
 | `AUTH_MODE` | `none` \| `local` \| `keycloak` | `none`  |
 
 **`AUTH_MODE=none` — no login at all.** Every visitor sees and edits every
-recipe. There is no login page, no user management and no password change.
-No further variables are needed; `AUTH_SECRET`, `AUTH_URL` and `SEED_ADMIN_*`
-are ignored. This is the default, so an unconfigured instance starts right up —
+recipe. There is no login page, no user management and no password change. No
+further variables are needed; `AUTH_SECRET`, `AUTH_URL` and `SEED_ADMIN_*` are
+ignored. This is the default, so an unconfigured instance starts right up —
 only run it behind your own gate (private network, VPN, authenticating reverse
-proxy), never openly on the internet.
+proxy), **never openly on the internet**.
 
 **`AUTH_MODE=local` — WeeMeal manages users itself** (username + password in
 MongoDB, admin panel, password policy of 12–72 chars with upper, lower, digit
 and special character).
 
-| Variable              | Required | Description                                                                              |
-|-----------------------|----------|-------------------------------------------------------------------------------------------|
-| `AUTH_SECRET`         | yes      | Signs the JWT session cookie. Generate with `openssl rand -base64 32`.                     |
-| `AUTH_URL`            | behind a proxy | Public base URL (use the `https://` one behind nginx/TLS).                           |
-| `SEED_ADMIN_USER`     | first start | Username of the first admin, created on startup.                                        |
-| `SEED_ADMIN_PASSWORD` | first start | Its password; must satisfy the password policy.                                         |
+| Variable              | Required       | Description                                                           |
+|-----------------------|----------------|-----------------------------------------------------------------------|
+| `AUTH_SECRET`         | yes            | Signs the JWT session cookie. Generate with `openssl rand -base64 32`. |
+| `AUTH_URL`            | behind a proxy | Public base URL (the `https://` one behind nginx/TLS).                |
+| `SEED_ADMIN_USER`     | first start    | Username of the first admin, created on startup.                      |
+| `SEED_ADMIN_PASSWORD` | first start    | Its password; must satisfy the password policy.                       |
 
 The seed only runs while **no admin exists** — it is idempotent, so changing
 `SEED_ADMIN_PASSWORD` later does **not** reset an existing admin's password.
-Use the admin panel (or a second admin) for that.
+Use the admin panel for that, and keep a second admin around: an account whose
+password is lost can only be reset by another admin.
+
+Signed-in users change their own password under **Passwort ändern** in the user
+menu.
 
 **`AUTH_MODE=keycloak` — login against an existing Keycloak** (specified in
 ADR 0001, not implemented yet). Planned variables: `KEYCLOAK_ISSUER`,
 `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_CLIENT_SECRET`, plus `AUTH_SECRET` and
 `AUTH_URL`. Users and roles live in Keycloak; WeeMeal shows no admin panel.
 
-```bash
-# Minimal: open instance, no login
-MONGODB_URI=mongodb://weemeal:weemeal_dev@localhost:27017/weemeal?authSource=admin
+### Behind a reverse proxy
 
-# With local accounts
-AUTH_MODE=local
-AUTH_SECRET=<openssl rand -base64 32>
-AUTH_URL=http://localhost:3000
-SEED_ADMIN_USER=root
-SEED_ADMIN_PASSWORD=<12-72 chars, upper + lower + digit + special>
-```
-
-## Available Scripts
-
-```bash
-# Development
-npm run dev           # Start development server
-npm run build         # Build for production
-npm run start         # Start production server
-npm run lint          # Run ESLint
-
-# Testing
-npm test              # Run all tests
-npm run test:watch    # Run tests in watch mode
-npm run test:coverage # Run tests with coverage
-npm run test:unit     # Run only unit tests
-
-# Docker
-npm run docker:up     # Start all services
-npm run docker:down   # Stop all services
-npm run docker:logs   # View logs
-npm run docker:reset  # Stop and remove volumes
-```
-
-## Project Structure
-
-```
-├── app/                    # Next.js App Router
-│   ├── api/               # API routes
-│   │   ├── admin/        # Admin/maintenance endpoints
-│   │   ├── images/       # Image upload/serve/delete
-│   │   └── recipes/      # Recipe CRUD + extensions
-│   ├── recipe/           # Recipe pages
-│   └── page.tsx          # Home page
-├── components/            # React components
-│   ├── navbar/           # Navigation
-│   ├── footer/           # Footer
-│   ├── recipe/           # Recipe-specific components
-│   └── ui/               # Reusable UI components
-├── lib/                   # Backend utilities
-│   ├── mongodb/          # Database connection + models
-│   ├── images/           # Image storage helpers
-│   └── validations/      # Zod schemas
-├── hooks/                 # Custom React hooks
-├── types/                 # TypeScript type definitions
-├── __tests__/            # Test files
-├── scripts/              # Maintenance scripts
-└── docker/               # Docker configuration
-```
+Terminate TLS in your proxy, forward `X-Forwarded-Proto` and
+`X-Forwarded-Host`, and set `AUTH_URL` to the public `https://` URL — otherwise
+login redirects and secure cookies point at the wrong host.
 
 ## API Endpoints
 
@@ -207,43 +180,18 @@ requires a session — unless `AUTH_MODE=none`, where all of them are open.
 
 Outside the `local` mode these respond `404`.
 
-| Method | Endpoint                    | Description                                    |
-|--------|-----------------------------|------------------------------------------------|
-| GET    | `/api/admin/users`          | Admin: list users                              |
-| POST   | `/api/admin/users`          | Admin: create a user (username, password, role)|
-| PATCH  | `/api/admin/users/[id]`     | Admin: change role or reset password           |
-| DELETE | `/api/admin/users/[id]`     | Admin: delete a user                           |
-| PATCH  | `/api/account/password`     | Change your own password (session-bound)       |
+| Method | Endpoint                    | Description                                     |
+|--------|-----------------------------|-------------------------------------------------|
+| GET    | `/api/admin/users`          | Admin: list users                               |
+| POST   | `/api/admin/users`          | Admin: create a user (username, password, role) |
+| PATCH  | `/api/admin/users/[id]`     | Admin: change role or reset password            |
+| DELETE | `/api/admin/users/[id]`     | Admin: delete a user                            |
+| PATCH  | `/api/account/password`     | Change your own password (session-bound)        |
 
-## Admin Endpoints
+## Maintenance
 
 `GET /api/admin/migrate-images` migrates existing recipe images to filesystem
 storage. Protect it with the `ADMIN_SECRET` environment variable.
-
-## Docker Services
-
-| Service            | URL                     | Credentials           |
-|--------------------|-------------------------|-----------------------|
-| MongoDB            | `localhost:27017`       | weemeal / weemeal_dev |
-| Mongo Express      | `http://localhost:8081` | -                     |
-
-## Docker Hub
-
-Docker Images can be found
-on [Docker Hub](https://hub.docker.com/repository/docker/darthkali/weemeal-frontend-react/general).
-
-## Forking and Docker Hub Integration
-
-If you want to fork this project, update the GitHub Actions workflows:
-
-1. In `.github/workflows/publish.yml` and `.github/workflows/release.yml`:
-    - `IMAGE_NAME`: The name of your Docker image
-    - Docker hub path: The path to your Docker Hub repository
-
-2. Set up GitHub Secrets:
-    - `DOCKER_HUB_USER`: Your Docker Hub username
-    - `DOCKER_HUB_PASS`: Your Docker Hub password
-    - `RELEASE_TOKEN`: A GitHub token
 
 ## License
 

@@ -1,0 +1,174 @@
+# Developing WeeMeal
+
+Everything you need to run WeeMeal from source. For running the published
+Docker image, see [README.md](README.md).
+
+## Requirements
+
+- Node.js 18+
+- Docker & Docker Compose (for MongoDB)
+
+## Getting Started
+
+### 1. Start the Docker services
+
+```bash
+docker-compose up -d
+```
+
+This starts:
+
+- **MongoDB** at `localhost:27017`
+- **Mongo Express** (DB UI) at `http://localhost:8081`
+
+Both are development-only containers; the app itself runs on the host via
+`npm run dev`.
+
+| Service       | URL                     | Credentials           |
+|---------------|-------------------------|-----------------------|
+| MongoDB       | `localhost:27017`       | weemeal / weemeal_dev |
+| Mongo Express | `http://localhost:8081` | –                     |
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure the environment
+
+Copy `.env.example` to `.env` (or `.env.local`) and fill it in. For plain
+recipe work the MongoDB URI is enough — WeeMeal then runs without a login,
+because `AUTH_MODE` defaults to `none`:
+
+```bash
+MONGODB_URI=mongodb://weemeal:weemeal_dev@localhost:27017/weemeal?authSource=admin
+```
+
+To work on anything auth-related, switch the mode on:
+
+```bash
+AUTH_MODE=local
+AUTH_SECRET=<openssl rand -base64 32>
+AUTH_URL=http://localhost:3000
+SEED_ADMIN_USER=root
+SEED_ADMIN_PASSWORD=<12-72 chars, upper + lower + digit + special>
+```
+
+The admin seed is idempotent: it only creates the admin while none exists.
+Changing `SEED_ADMIN_PASSWORD` afterwards does **not** reset an existing
+account — reset it from the admin panel, or drop the `users` collection to let
+the seed run again.
+
+`.env.example` documents every variable; the deployment-facing reference with
+all three auth modes lives in the [README](README.md#environment-variables).
+
+### 4. Start the development server
+
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:3000`.
+
+## Available Scripts
+
+```bash
+# Development
+npm run dev           # Start development server
+npm run build         # Build for production
+npm run start         # Start production server
+npm run lint          # Run ESLint
+
+# Testing
+npm test              # Run all tests
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Run tests with coverage
+npm run test:unit     # Run only unit tests
+
+# Docker
+npm run docker:up     # Start all services
+npm run docker:down   # Stop all services
+npm run docker:logs   # View logs
+npm run docker:reset  # Stop and remove volumes
+```
+
+Typecheck with `npx tsc --noEmit`.
+
+## Testing an auth mode end to end
+
+`AUTH_MODE` is read at runtime, so one build can run every mode. The
+production build is a standalone server, which `next start` does not serve —
+use the standalone entry point:
+
+```bash
+npm run build
+cd .next/standalone
+MONGODB_URI=... PORT=3100 node server.js
+```
+
+Note that the build copies the project's `.env` into `.next/standalone/`, so
+that file wins over an unset variable. Move it aside to test the default
+(`none`) mode.
+
+## Project Structure
+
+```
+├── app/                    # Next.js App Router
+│   ├── account/           # Change your own password (local auth mode)
+│   ├── admin/             # User management (local auth mode)
+│   ├── api/               # API routes
+│   │   ├── account/      # Own password
+│   │   ├── admin/        # User management + maintenance endpoints
+│   │   ├── auth/         # Auth.js endpoints
+│   │   ├── images/       # Image upload/serve/delete
+│   │   └── recipes/      # Recipe CRUD + extensions
+│   ├── login/            # Login page
+│   ├── recipe/           # Recipe pages
+│   └── page.tsx          # Home page
+├── components/            # React components
+│   ├── account/          # Password change form
+│   ├── admin/            # Admin panel
+│   ├── auth/             # Login form
+│   ├── navbar/           # Navigation
+│   ├── footer/           # Footer
+│   ├── recipe/           # Recipe-specific components
+│   └── ui/               # Reusable UI components
+├── lib/                   # Backend utilities
+│   ├── api/              # HTTP error mapping
+│   ├── auth/             # Password policy, guards, admin seed
+│   ├── mongodb/          # Database connection + models
+│   ├── images/           # Image storage helpers
+│   └── validations/      # Zod schemas
+├── auth.ts                # Auth.js setup (Node side, providers)
+├── auth.config.ts         # Edge-safe Auth.js config + AUTH_MODE
+├── proxy.ts               # Route protection (former middleware.ts)
+├── hooks/                 # Custom React hooks
+├── types/                 # TypeScript type definitions
+├── __tests__/            # Test files
+├── scripts/              # Maintenance scripts
+└── docs/adr/             # Architecture decision records
+```
+
+## Domain documentation
+
+- [`CONTEXT.md`](CONTEXT.md) — the project's vocabulary. Use these terms in
+  code, issues and commits.
+- [`docs/adr/`](docs/adr) — the decisions behind the architecture, including
+  the auth modes (ADR 0001, ADR 0003) and the shared recipe pool (ADR 0002).
+- [`AGENTS.md`](AGENTS.md) — how coding agents should work in this repo.
+
+## Forking and Docker Hub Integration
+
+If you want to fork this project, update `.github/workflows/ci-cd.yml`:
+
+1. Change the image name and Docker Hub path in the build and push steps
+   (currently `docker.io/darthkali/weemeal`).
+
+2. Set up GitHub Secrets:
+    - `DOCKER_HUB_USER`: Your Docker Hub username
+    - `DOCKER_HUB_PASS`: Your Docker Hub password or access token
+
+## License
+
+MIT
