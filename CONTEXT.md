@@ -1,6 +1,6 @@
 # WeeMeal
 
-WeeMeal ist eine Rezeptverwaltung. Es gibt genau ein persistiertes Aggregat — das **Recipe**; alles andere ist eingebettet, ein Value Object oder ein reines UI-/Laufzeit-Konzept.
+WeeMeal ist eine Rezeptverwaltung. Fachlich zentrales Aggregat ist das **Recipe**; alles daran ist eingebettet, ein Value Object oder ein reines UI-/Laufzeit-Konzept. Daneben existiert **User** als zweites Konzept — rein als Zugangs-Gate, nicht mit Recipes verknüpft. Wo der User lebt, hängt vom **Auth Mode** ab.
 
 ## Language
 
@@ -87,4 +87,38 @@ Das Bild eines Recipe. Im Dateisystem gespeichert (nicht in MongoDB), am Recipe 
 
 ---
 
-_Reserviert, noch ungenutzt:_ `userId` am Recipe. User/Auth ist noch nicht modelliert und kommt in einer eigenen Session ins Glossar.
+_Reserviert, noch ungenutzt:_ ~~`userId` am Recipe~~. **Entfernt** — WeeMeal ist ein Shared Pool: jeder angemeldete User sieht alle Recipes, es gibt kein Ownership (siehe ADR 0002). Recipes tragen keinen Bezug zu einem User.
+
+## User & Auth
+
+**User**:
+Ein Zugangsberechtigter. Trägt genau eine **Role** und dient allein dem Login — er besitzt keine Recipes und hat keine weitere fachliche Bedeutung. Persistenz hängt vom **Auth Mode** ab: im local-Modus in WeeMeal gespeichert, im keycloak-Modus in Keycloak.
+_Avoid_: Account, Member, Konto
+
+**Username**:
+Der Login-Bezeichner eines User. Im local-Modus die Identität (Username + Passwort). Im keycloak-Modus der `preferred_username`-Claim.
+
+**Role**:
+Die Rolle eines User: `user` oder `admin`. Ein **Admin** ist immer auch `user`. Es kann mehrere Admins geben.
+_Avoid_: Permission, Grant, Berechtigung
+
+**Admin**:
+Ein User mit Role `admin`. Darf im local-Modus andere User verwalten. Es muss **immer mindestens einen Admin** geben — ein Admin kann sich die Admin-Rolle nicht selbst entziehen, und der einzige verbleibende Admin ist nicht löschbar (Invarianten gelten nur im local-Modus; im keycloak-Modus verantwortet Keycloak die Rollen).
+
+**Auth Mode**:
+Der pro Deployment fest gewählte Authentifizierungs-Modus: **`keycloak`** (Login über Keycloak als externen Identity Provider) oder **`local`** (WeeMeal-eigene User mit Username + Passwort). Genau einer pro Instanz.
+_Avoid_: auth strategy, login type
+
+**Identity Provider**:
+Die austauschbare Quelle von Authentifizierung und Rollen hinter dem Auth Mode. Im keycloak-Modus ist es Keycloak, im local-Modus WeeMeal selbst. Beide erfüllen denselben Vertrag (Login prüfen, Role liefern; User-Verwaltung nur local).
+_Avoid_: IdP-Provider, AuthProvider
+
+**Claim**:
+Eine Aussage im Token, die WeeMeal nach dem Login liest — insbesondere die **Role**. Im keycloak-Modus stammt sie aus den Keycloak-Rollen `weemeal-user` / `weemeal-admin`; ohne `weemeal-user` kein Zutritt.
+
+**Session**:
+Der angemeldete Zustand eines User nach erfolgreichem Login. Trägt Username, Role und Auth Mode. Ohne Session ist nichts sichtbar (auch keine Recipes).
+
+**Seed Admin**:
+Der beim Start automatisch angelegte erste Admin im local-Modus, aus Konfiguration. Wird nur erzeugt, wenn noch kein Admin existiert (idempotent). Im keycloak-Modus existiert kein Seed.
+_Avoid_: root user, default admin
