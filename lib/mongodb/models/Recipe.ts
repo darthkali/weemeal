@@ -1,39 +1,15 @@
 import mongoose, {Document, Model, Schema} from 'mongoose';
-
-export interface IIngredient {
-    contentId: string;
-    contentType: 'INGREDIENT';
-    position: number;
-    ingredientName: string;
-    unit?: string;
-    amount?: number;
-}
-
-export interface ISectionCaption {
-    contentId: string;
-    contentType: 'SECTION_CAPTION';
-    position: number;
-    sectionName: string;
-}
-
-export type IIngredientListContent = IIngredient | ISectionCaption;
-
-export interface IRecipeSource {
-    type: 'book' | 'url';
-    bookTitle?: string;
-    bookPage?: string;
-    url?: string;
-}
+import type {IngredientListContent, RecipeSource} from '@/types/recipe';
 
 export interface IRecipe {
     name: string;
     recipeYield: number;
     recipeInstructions: string;
-    ingredientListContent: IIngredientListContent[];
+    ingredientListContent: IngredientListContent[];
     imageUrl?: string;
     tags?: string[];
     notes?: string;
-    source?: IRecipeSource;
+    source?: RecipeSource;
     userId?: string;
     createdAt: Date;
     updatedAt: Date;
@@ -99,11 +75,12 @@ const RecipeSchema = new Schema<IRecipeDocument>(
         source: {
             type: {
                 type: String,
-                enum: ['book', 'url'],
+                enum: ['book', 'url', 'text'],
             },
             bookTitle: String,
             bookPage: String,
             url: String,
+            text: String,
         },
         userId: {
             type: String,

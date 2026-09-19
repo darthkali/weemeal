@@ -12,6 +12,7 @@ import {
     faCarrot,
     faEdit,
     faExternalLinkAlt,
+    faQuoteRight,
     faShoppingCart,
     faTrash,
     faUsers,
@@ -270,7 +271,7 @@ export default function RecipeDetailView({recipe}: RecipeDetailViewProps) {
                             <h3 className="text-sm font-semibold text-blue-800 mb-3">
                                 Originalquelle
                             </h3>
-                            {recipe.source.type === 'book' ? (
+                            {recipe.source.type === 'book' && (
                                 <div className="flex items-start gap-3">
                                     <div
                                         className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -283,7 +284,8 @@ export default function RecipeDetailView({recipe}: RecipeDetailViewProps) {
                                         )}
                                     </div>
                                 </div>
-                            ) : (
+                            )}
+                            {recipe.source.type === 'url' && (
                                 <a
                                     href={recipe.source.url}
                                     target="_blank"
@@ -298,6 +300,17 @@ export default function RecipeDetailView({recipe}: RecipeDetailViewProps) {
                                         {recipe.source.url}
                                     </span>
                                 </a>
+                            )}
+                            {recipe.source.type === 'text' && (
+                                <div className="flex items-start gap-3">
+                                    <div
+                                        className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                        <FontAwesomeIcon icon={faQuoteRight} className="w-4 h-4 text-blue-600"/>
+                                    </div>
+                                    <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                                        {recipe.source.text}
+                                    </p>
+                                </div>
                             )}
                         </div>
                     )}

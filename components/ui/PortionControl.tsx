@@ -39,7 +39,7 @@ export default function PortionControl({
                 onClick={onIncrease}
                 disabled={portions >= maxPortions}
                 className="w-9 h-9 flex items-center justify-center rounded-lg bg-white shadow-sm text-text-dark hover:bg-primary hover:text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-text-dark transition-all duration-150"
-                aria-label="Portionen erhoehen"
+                aria-label="Portionen erhöhen"
             >
                 <FontAwesomeIcon icon={faPlus} className="w-3 h-3"/>
             </button>

@@ -1,4 +1,4 @@
-import {IngredientListContent, isIngredient, isSectionCaption} from '@/types/ingredient';
+import {IngredientListContent, isIngredient, isSectionCaption} from '@/types/recipe';
 
 interface ContentItemProps {
     content: IngredientListContent;
@@ -15,10 +15,8 @@ export default function ContentItem({content, portionMultiplier = 1}: ContentIte
     }
 
     if (isIngredient(content)) {
-        const amount = content.amount
-            ? typeof content.amount === 'number'
-                ? Math.round(content.amount * portionMultiplier * 100) / 100
-                : parseFloat(content.amount) * portionMultiplier
+        const amount = content.amount != null
+            ? Math.round(content.amount * portionMultiplier * 100) / 100
             : null;
 
         // Format amount nicely (remove trailing zeros)

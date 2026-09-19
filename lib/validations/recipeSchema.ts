@@ -1,5 +1,8 @@
 import {z} from 'zod';
 
+// Runtime contract for recipe data. Keep structurally in sync with the
+// canonical TS shapes in types/recipe.ts.
+
 export const IngredientSchema = z.object({
     contentId: z.string().min(1),
     contentType: z.literal('INGREDIENT'),
@@ -21,25 +24,26 @@ export const IngredientListContentSchema = z.discriminatedUnion('contentType', [
     SectionCaptionSchema,
 ]);
 
-export const RecipeSourceSchema = z.object({
-    type: z.enum(['book', 'url']),
-    bookTitle: z.string().max(200).optional(),
-    bookPage: z.string().max(50).optional(),
-    url: z.string().url().max(2000).optional(),
-}).refine(
-    (data) => {
-        if (data.type === 'book') {
-            return !!data.bookTitle;
-        }
-        if (data.type === 'url') {
-            return !!data.url;
-        }
-        return true;
-    },
-    {message: 'Book title or URL is required based on source type'}
-);
+export const RecipeSourceSchema = z.discriminatedUnion('type', [
+    z.object({
+        type: z.literal('url'),
+        url: z.string().url().max(2000),
+    }),
+    z.object({
+        type: z.literal('book'),
+        bookTitle: z.string().min(1).max(200),
+        bookPage: z.string().max(50).optional(),
+    }),
+    z.object({
+        type: z.literal('text'),
+        text: z.string().min(1).max(2000),
+    }),
+]);
 
-export const RecipeInputSchema = z.object({
+// Shared field rules without defaults. RecipeInputSchema adds create-time
+// defaults on top; RecipeUpdateSchema uses these as-is so an empty {} update
+// parses to {} and is rejected by the refine below.
+const recipeBaseShape = {
     name: z
         .string()
         .min(1, 'Recipe name is required')
@@ -50,16 +54,24 @@ export const RecipeInputSchema = z.object({
         .int('Recipe yield must be a whole number')
         .min(1, 'Recipe yield must be at least 1')
         .max(100, 'Recipe yield cannot exceed 100'),
-    recipeInstructions: z.string().default(''),
-    ingredientListContent: z.array(IngredientListContentSchema).default([]),
+    recipeInstructions: z.string(),
+    ingredientListContent: z.array(IngredientListContentSchema),
     imageUrl: z.string().nullable().optional(),
-    tags: z.array(z.string().max(25)).max(10).default([]),
-    notes: z.string().max(5000).default(''),
+    tags: z.array(z.string().max(25)).max(10),
+    notes: z.string().max(5000),
     source: RecipeSourceSchema.nullable().optional(),
     userId: z.string().optional(),
+};
+
+export const RecipeInputSchema = z.object({
+    ...recipeBaseShape,
+    recipeInstructions: recipeBaseShape.recipeInstructions.default(''),
+    ingredientListContent: recipeBaseShape.ingredientListContent.default([]),
+    tags: recipeBaseShape.tags.default([]),
+    notes: recipeBaseShape.notes.default(''),
 });
 
-export const RecipeUpdateSchema = RecipeInputSchema.partial().refine(
+export const RecipeUpdateSchema = z.object(recipeBaseShape).partial().refine(
     (data) => Object.keys(data).length > 0,
     {message: 'At least one field must be provided for update'}
 );

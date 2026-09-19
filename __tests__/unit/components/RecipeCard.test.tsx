@@ -42,15 +42,13 @@ describe('RecipeCard', () => {
 
     it('should render portion count', () => {
         render(<RecipeCard recipe={mockRecipe}/>);
-        expect(screen.getByText('4')).toBeInTheDocument();
-        expect(screen.getByText('Portionen')).toBeInTheDocument();
+        expect(screen.getByText('4 Portionen')).toBeInTheDocument();
     });
 
     it('should render ingredient count (excluding sections)', () => {
         render(<RecipeCard recipe={mockRecipe}/>);
         // Should count only INGREDIENT items, not SECTION_CAPTION
-        expect(screen.getByText('2')).toBeInTheDocument();
-        expect(screen.getByText('Zutaten')).toBeInTheDocument();
+        expect(screen.getByText('2 Zutaten')).toBeInTheDocument();
     });
 
     it('should link to recipe detail page', () => {
@@ -69,7 +67,6 @@ describe('RecipeCard', () => {
         };
 
         render(<RecipeCard recipe={emptyRecipe}/>);
-        expect(screen.getByText('0')).toBeInTheDocument();
-        expect(screen.getByText('Zutaten')).toBeInTheDocument();
+        expect(screen.getByText('0 Zutaten')).toBeInTheDocument();
     });
 });

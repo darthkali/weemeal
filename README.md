@@ -15,7 +15,6 @@ A modern recipe management application with shopping list integration.
 
 - **Framework**: Next.js 16+ (App Router, Turbopack)
 - **Database**: MongoDB (Mongoose ODM)
-- **Authentication**: NextAuth.js v4 with Keycloak
 - **Styling**: Tailwind CSS
 - **Drag & Drop**: @hello-pangea/dnd
 - **Testing**: Vitest + Testing Library
@@ -30,10 +29,14 @@ A modern recipe management application with shopping list integration.
 - QR code generation for Bring! shopping list integration
 - Markdown support for recipe instructions
 - Recipe notes with auto-save
-- Source attribution (book with page or URL)
-- Tags with AI-powered generation
-- Image upload or AI-powered image search
+- Source attribution (book with page, URL, or free text)
+- Tags
+- Image upload
 - Full-text search functionality
+
+## Roadmap
+
+- Authentication (planned next; not yet implemented)
 
 ## Requirements
 
@@ -52,7 +55,6 @@ This starts:
 
 - **MongoDB** at `localhost:27017`
 - **Mongo Express** (DB UI) at `http://localhost:8081`
-- **Keycloak** at `http://localhost:8080` (admin/admin)
 
 ### 2. Install Dependencies
 
@@ -75,15 +77,6 @@ The project uses `.env.local` for local development:
 ```bash
 # MongoDB (Docker)
 MONGODB_URI=mongodb://weemeal:weemeal_dev@localhost:27017/weemeal?authSource=admin
-
-# NextAuth
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=local-dev-secret-change-in-production
-
-# Keycloak (optional - auth disabled if not configured)
-KEYCLOAK_CLIENT_ID=weemeal-app
-KEYCLOAK_CLIENT_SECRET=weemeal-dev-secret
-KEYCLOAK_ISSUER=http://localhost:8080/realms/weemeal
 
 # App
 NEXT_PUBLIC_APP_VERSION=1.0.0-dev
@@ -118,7 +111,8 @@ npm run docker:reset  # Stop and remove volumes
 ```
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes
-│   │   ├── auth/         # NextAuth endpoints
+│   │   ├── admin/        # Admin/maintenance endpoints
+│   │   ├── images/       # Image upload/serve/delete
 │   │   └── recipes/      # Recipe CRUD + extensions
 │   ├── recipe/           # Recipe pages
 │   └── page.tsx          # Home page
@@ -129,12 +123,12 @@ npm run docker:reset  # Stop and remove volumes
 │   └── ui/               # Reusable UI components
 ├── lib/                   # Backend utilities
 │   ├── mongodb/          # Database connection + models
-│   ├── auth/             # NextAuth configuration
+│   ├── images/           # Image storage helpers
 │   └── validations/      # Zod schemas
 ├── hooks/                 # Custom React hooks
 ├── types/                 # TypeScript type definitions
 ├── __tests__/            # Test files
-├── scripts/              # Migration scripts
+├── scripts/              # Maintenance scripts
 └── docker/               # Docker configuration
 ```
 
@@ -149,22 +143,16 @@ npm run docker:reset  # Stop and remove volumes
 | DELETE | `/api/recipes/[id]`             | Delete a recipe                  |
 | PATCH  | `/api/recipes/[id]/notes`       | Update recipe notes              |
 | PATCH  | `/api/recipes/[id]/source`      | Update recipe source             |
-| GET    | `/api/recipes/[id]/image`       | Generate/fetch recipe image      |
-| POST   | `/api/recipes/generate-tags`    | Generate tags with AI            |
 | GET    | `/api/recipes/bring/[id]`       | Get Schema.org HTML for Bring!   |
-
-## Data Migration
-
-To migrate data from the old PostgreSQL database:
-
-1. Export data using the SQL script in `scripts/export-postgres.sql`
-2. Run the migration:
-   ```bash
-   npx tsx scripts/migrate-data.ts recipes.json
-   ```
+| POST   | `/api/images`                   | Upload an image                  |
+| GET    | `/api/images/[id]`              | Serve an image                   |
+| DELETE | `/api/images/[id]`              | Delete an image                  |
+| GET    | `/api/admin/migrate-images`     | Admin: migrate images            |
 
 ## Admin Endpoints
 
+`GET /api/admin/migrate-images` migrates existing recipe images to filesystem
+storage. Protect it with the `ADMIN_SECRET` environment variable.
 
 ## Docker Services
 

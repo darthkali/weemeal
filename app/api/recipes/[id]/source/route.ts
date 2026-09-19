@@ -1,6 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {revalidatePath} from 'next/cache';
 import {recipeRepository} from '@/lib/mongodb/repositories/RecipeRepository';
+import {RecipeSourceSchema} from '@/lib/validations/recipeSchema';
 import {z} from 'zod';
 
 interface RouteParams {
@@ -8,12 +9,7 @@ interface RouteParams {
 }
 
 const SourceSchema = z.object({
-    source: z.object({
-        type: z.enum(['book', 'url']),
-        bookTitle: z.string().max(200).optional(),
-        bookPage: z.string().max(50).optional(),
-        url: z.string().url().max(2000).optional(),
-    }).nullable(),
+    source: RecipeSourceSchema.nullable(),
 });
 
 // PATCH /api/recipes/[id]/source - Update only the source field

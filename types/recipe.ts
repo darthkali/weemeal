@@ -22,12 +22,32 @@ export interface SectionCaption extends BaseContent {
 
 export type IngredientListContent = Ingredient | SectionCaption;
 
-export interface RecipeSource {
-    type: 'book' | 'url';
-    bookTitle?: string;
-    bookPage?: string;
-    url?: string;
+export function isIngredient(content: IngredientListContent): content is Ingredient {
+    return content.contentType === 'INGREDIENT';
 }
+
+export function isSectionCaption(content: IngredientListContent): content is SectionCaption {
+    return content.contentType === 'SECTION_CAPTION';
+}
+
+// Source: the optional provenance of a recipe. Exactly one variant, or none.
+export interface UrlSource {
+    type: 'url';
+    url: string;
+}
+
+export interface BookSource {
+    type: 'book';
+    bookTitle: string;
+    bookPage?: string;
+}
+
+export interface TextSource {
+    type: 'text';
+    text: string;
+}
+
+export type RecipeSource = UrlSource | BookSource | TextSource;
 
 export interface Recipe {
     _id?: ObjectId | string;
@@ -66,13 +86,4 @@ export interface RecipeInput {
     recipeInstructions: string;
     ingredientListContent: IngredientListContent[];
     userId?: string;
-}
-
-// Legacy format compatibility (from old React app)
-export interface LegacyRecipe {
-    recipeId: string;
-    name: string;
-    recipeYield: number;
-    recipeInstructions: string;
-    ingredientListContent: IngredientListContent[];
 }

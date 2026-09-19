@@ -14,6 +14,7 @@ import {
     faImage,
     faLayerGroup,
     faPlus,
+    faQuoteRight,
     faSave,
     faTags,
     faTimes,
@@ -51,12 +52,21 @@ export default function RecipeFormView({
     const [newTag, setNewTag] = useState('');
 
     // Source state
-    const [sourceType, setSourceType] = useState<'none' | 'book' | 'url'>(
+    const [sourceType, setSourceType] = useState<'none' | 'book' | 'url' | 'text'>(
         recipe?.source?.type || 'none'
     );
-    const [sourceBookTitle, setSourceBookTitle] = useState(recipe?.source?.bookTitle || '');
-    const [sourceBookPage, setSourceBookPage] = useState(recipe?.source?.bookPage || '');
-    const [sourceUrl, setSourceUrl] = useState(recipe?.source?.url || '');
+    const [sourceBookTitle, setSourceBookTitle] = useState(
+        recipe?.source?.type === 'book' ? recipe.source.bookTitle : ''
+    );
+    const [sourceBookPage, setSourceBookPage] = useState(
+        recipe?.source?.type === 'book' ? (recipe.source.bookPage ?? '') : ''
+    );
+    const [sourceUrl, setSourceUrl] = useState(
+        recipe?.source?.type === 'url' ? recipe.source.url : ''
+    );
+    const [sourceText, setSourceText] = useState(
+        recipe?.source?.type === 'text' ? recipe.source.text : ''
+    );
 
     // Validation errors
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -92,7 +102,7 @@ export default function RecipeFormView({
     }, []);
 
     const handleContentChange = useCallback(
-        (contentId: string, field: string, value: string | number) => {
+        (contentId: string, field: string, value: string | number | undefined) => {
             setIngredientListContent((prev) =>
                 prev.map((c) =>
                     c.contentId === contentId ? {...c, [field]: value} : c
@@ -175,10 +185,13 @@ export default function RecipeFormView({
         if (sourceType === 'url' && !sourceUrl.trim()) {
             newErrors.sourceUrl = 'URL ist erforderlich';
         }
+        if (sourceType === 'text' && !sourceText.trim()) {
+            newErrors.sourceText = 'Text ist erforderlich';
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }, [name, recipeYield, ingredientListContent, sourceType, sourceBookTitle, sourceUrl]);
+    }, [name, recipeYield, ingredientListContent, sourceType, sourceBookTitle, sourceUrl, sourceText]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -197,18 +210,25 @@ export default function RecipeFormView({
                     position: idx,
                 })),
                 tags,
-                source: sourceType === 'none' ? null : sourceType === 'book'
-                    ? {
-                        type: 'book' as const,
-                        bookTitle: sourceBookTitle.trim(),
-                        bookPage: sourceBookPage.trim() || undefined
-                    }
-                    : {
-                        type: 'url' as const,
-                        url: sourceUrl.trim().match(/^https?:\/\//)
-                            ? sourceUrl.trim()
-                            : `https://${sourceUrl.trim()}`
-                    },
+                source: sourceType === 'none'
+                    ? null
+                    : sourceType === 'book'
+                        ? {
+                            type: 'book' as const,
+                            bookTitle: sourceBookTitle.trim(),
+                            bookPage: sourceBookPage.trim() || undefined
+                        }
+                        : sourceType === 'url'
+                            ? {
+                                type: 'url' as const,
+                                url: sourceUrl.trim().match(/^https?:\/\//)
+                                    ? sourceUrl.trim()
+                                    : `https://${sourceUrl.trim()}`
+                            }
+                            : {
+                                type: 'text' as const,
+                                text: sourceText.trim()
+                            },
             };
 
             // Include imageUrl - use null to explicitly clear, or the URL to set
@@ -397,6 +417,18 @@ export default function RecipeFormView({
                             <FontAwesomeIcon icon={faExternalLinkAlt} className="w-3 h-3"/>
                             Website
                         </button>
+                        <button
+                            type="button"
+                            onClick={() => setSourceType('text')}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors ${
+                                sourceType === 'text'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-150'
+                            }`}
+                        >
+                            <FontAwesomeIcon icon={faQuoteRight} className="w-3 h-3"/>
+                            Freitext
+                        </button>
                     </div>
 
                     {/* Source fields based on type */}
@@ -438,6 +470,22 @@ export default function RecipeFormView({
                             />
                             {errors.sourceUrl && (
                                 <p className="text-error text-sm mt-1">{errors.sourceUrl}</p>
+                            )}
+                        </div>
+                    )}
+
+                    {sourceType === 'text' && (
+                        <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 mt-3">
+                            <textarea
+                                value={sourceText}
+                                onChange={(e) => setSourceText(e.target.value)}
+                                className={`input textarea-auto ${errors.sourceText ? 'border-error' : ''}`}
+                                placeholder="z.B. Rezept meiner Oma oder Verpackung der Milchreis-Packung *"
+                                maxLength={2000}
+                                rows={2}
+                            />
+                            {errors.sourceText && (
+                                <p className="text-error text-sm mt-1">{errors.sourceText}</p>
                             )}
                         </div>
                     )}
@@ -560,7 +608,7 @@ export default function RecipeFormView({
                                                                 handleContentChange(
                                                                     content.contentId,
                                                                     'amount',
-                                                                    e.target.value ? parseFloat(e.target.value) : ''
+                                                                    e.target.value ? parseFloat(e.target.value) : undefined
                                                                 )
                                                             }
                                                             className="input w-20 text-center"

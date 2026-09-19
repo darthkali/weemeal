@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
     IngredientSchema,
     RecipeInputSchema,
+    RecipeSourceSchema,
     RecipeUpdateSchema,
     SectionCaptionSchema,
     validateRecipeInput,
@@ -171,6 +172,38 @@ describe('SectionCaptionSchema', () => {
         };
 
         const result = SectionCaptionSchema.safeParse(section);
+        expect(result.success).toBe(false);
+    });
+});
+
+describe('RecipeSourceSchema', () => {
+    it('should accept a text source', () => {
+        const result = RecipeSourceSchema.safeParse({type: 'text', text: 'Rezept meiner Oma'});
+        expect(result.success).toBe(true);
+    });
+
+    it('should reject a text source without text', () => {
+        const result = RecipeSourceSchema.safeParse({type: 'text'});
+        expect(result.success).toBe(false);
+    });
+
+    it('should accept a book source with title', () => {
+        const result = RecipeSourceSchema.safeParse({type: 'book', bookTitle: 'Grundkochbuch', bookPage: 'S. 42'});
+        expect(result.success).toBe(true);
+    });
+
+    it('should reject a book source without title', () => {
+        const result = RecipeSourceSchema.safeParse({type: 'book'});
+        expect(result.success).toBe(false);
+    });
+
+    it('should accept a url source with url', () => {
+        const result = RecipeSourceSchema.safeParse({type: 'url', url: 'https://example.com'});
+        expect(result.success).toBe(true);
+    });
+
+    it('should reject a url source without url', () => {
+        const result = RecipeSourceSchema.safeParse({type: 'url'});
         expect(result.success).toBe(false);
     });
 });
