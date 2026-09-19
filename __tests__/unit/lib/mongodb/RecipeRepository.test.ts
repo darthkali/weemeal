@@ -118,26 +118,6 @@ describe('Recipe Model', () => {
 
             expect(result).toHaveLength(2);
         });
-
-        it('should filter by userId', async () => {
-            await new Recipe({
-                name: 'User1 Recipe',
-                recipeYield: 2,
-                recipeInstructions: '',
-                userId: 'user1',
-            }).save();
-            await new Recipe({
-                name: 'User2 Recipe',
-                recipeYield: 2,
-                recipeInstructions: '',
-                userId: 'user2',
-            }).save();
-
-            const result = await Recipe.find({userId: 'user1'});
-
-            expect(result).toHaveLength(1);
-            expect(result[0].name).toBe('User1 Recipe');
-        });
     });
 
     describe('update', () => {

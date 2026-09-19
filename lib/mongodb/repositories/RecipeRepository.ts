@@ -12,7 +12,6 @@ export interface CreateRecipeInput {
     tags?: string[];
     notes?: string;
     source?: RecipeSource | null;
-    userId?: string;
 }
 
 export interface UpdateRecipeInput extends Partial<CreateRecipeInput> {
@@ -36,10 +35,9 @@ export class RecipeRepository {
         return recipe.save();
     }
 
-    async findAll(userId?: string): Promise<IRecipeDocument[]> {
+    async findAll(): Promise<IRecipeDocument[]> {
         await this.ensureConnection();
-        const query = userId ? {userId} : {};
-        return Recipe.find(query).sort({createdAt: -1}).exec();
+        return Recipe.find().sort({createdAt: -1}).exec();
     }
 
     async findById(id: string): Promise<IRecipeDocument | null> {
@@ -77,32 +75,24 @@ export class RecipeRepository {
         return result !== null;
     }
 
-    async search(query: string, userId?: string): Promise<IRecipeDocument[]> {
+    async search(query: string): Promise<IRecipeDocument[]> {
         await this.ensureConnection();
 
         const searchQuery: Record<string, unknown> = {
             $text: {$search: query},
         };
 
-        if (userId) {
-            searchQuery.userId = userId;
-        }
-
         return Recipe.find(searchQuery)
             .sort({score: {$meta: 'textScore'}})
             .exec();
     }
 
-    async findByName(name: string, userId?: string): Promise<IRecipeDocument[]> {
+    async findByName(name: string): Promise<IRecipeDocument[]> {
         await this.ensureConnection();
 
         const query: Record<string, unknown> = {
             name: {$regex: name, $options: 'i'},
         };
-
-        if (userId) {
-            query.userId = userId;
-        }
 
         return Recipe.find(query).sort({name: 1}).exec();
     }

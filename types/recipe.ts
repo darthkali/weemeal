@@ -59,7 +59,6 @@ export interface Recipe {
     tags?: string[];
     notes?: string;
     source?: RecipeSource;
-    userId?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -85,5 +84,4 @@ export interface RecipeInput {
     recipeYield: number;
     recipeInstructions: string;
     ingredientListContent: IngredientListContent[];
-    userId?: string;
 }

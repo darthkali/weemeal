@@ -6,14 +6,13 @@ import {validateRecipeInput} from '@/lib/validations/recipeSchema';
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
-        const userId = searchParams.get('userId') || undefined;
         const search = searchParams.get('search');
 
         let recipes;
         if (search) {
-            recipes = await recipeRepository.findByName(search, userId);
+            recipes = await recipeRepository.findByName(search);
         } else {
-            recipes = await recipeRepository.findAll(userId);
+            recipes = await recipeRepository.findAll();
         }
 
         // Transform MongoDB documents to plain objects
@@ -25,7 +24,6 @@ export async function GET(request: NextRequest) {
             ingredientListContent: recipe.ingredientListContent,
             imageUrl: recipe.imageUrl,
             tags: recipe.tags || [],
-            userId: recipe.userId,
             createdAt: recipe.createdAt?.toISOString(),
             updatedAt: recipe.updatedAt?.toISOString(),
         }));
@@ -76,7 +74,6 @@ export async function POST(request: NextRequest) {
             ingredientListContent: recipe.ingredientListContent,
             imageUrl: recipe.imageUrl,
             tags: recipe.tags || [],
-            userId: recipe.userId,
             createdAt: recipe.createdAt?.toISOString(),
             updatedAt: recipe.updatedAt?.toISOString(),
         };

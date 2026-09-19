@@ -60,7 +60,6 @@ const recipeBaseShape = {
     tags: z.array(z.string().max(25)).max(10),
     notes: z.string().max(5000),
     source: RecipeSourceSchema.nullable().optional(),
-    userId: z.string().optional(),
 };
 
 export const RecipeInputSchema = z.object({

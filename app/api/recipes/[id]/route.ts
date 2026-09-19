@@ -31,7 +31,6 @@ export async function GET(request: NextRequest, {params}: RouteParams) {
             tags: recipe.tags || [],
             notes: recipe.notes || '',
             source: recipe.source || null,
-            userId: recipe.userId,
             createdAt: recipe.createdAt?.toISOString(),
             updatedAt: recipe.updatedAt?.toISOString(),
         };
@@ -121,7 +120,6 @@ export async function PUT(request: NextRequest, {params}: RouteParams) {
             tags: recipe.tags || [],
             notes: recipe.notes || '',
             source: recipe.source || null,
-            userId: recipe.userId,
             createdAt: recipe.createdAt?.toISOString(),
             updatedAt: recipe.updatedAt?.toISOString(),
         };

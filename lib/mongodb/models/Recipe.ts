@@ -10,7 +10,6 @@ export interface IRecipe {
     tags?: string[];
     notes?: string;
     source?: RecipeSource;
-    userId?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -81,10 +80,6 @@ const RecipeSchema = new Schema<IRecipeDocument>(
             bookPage: String,
             url: String,
             text: String,
-        },
-        userId: {
-            type: String,
-            index: true,
         },
     },
     {
