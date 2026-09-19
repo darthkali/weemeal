@@ -3,13 +3,13 @@
 # WeeMeal
 A modern recipe management application with shopping list integration.
 
-![Bildschirmfoto 2026-03-01 um 12.10.31.png](doc/Bildschirmfoto%202026-03-01%20um%2012.10.31.png)
+![Bildschirmfoto 2026-03-01 um 12.10.31.png](docs/images/Bildschirmfoto%202026-03-01%20um%2012.10.31.png)
 
-![Bildschirmfoto 2026-03-01 um 12.11.18.png](doc/Bildschirmfoto%202026-03-01%20um%2012.11.18.png)
+![Bildschirmfoto 2026-03-01 um 12.11.18.png](docs/images/Bildschirmfoto%202026-03-01%20um%2012.11.18.png)
 
-![Bildschirmfoto 2026-03-01 um 12.11.30.png](doc/Bildschirmfoto%202026-03-01%20um%2012.11.30.png)
+![Bildschirmfoto 2026-03-01 um 12.11.30.png](docs/images/Bildschirmfoto%202026-03-01%20um%2012.11.30.png)
 
-![Bildschirmfoto 2026-03-01 um 12.11.43.png](doc/Bildschirmfoto%202026-03-01%20um%2012.11.43.png)
+![Bildschirmfoto 2026-03-01 um 12.11.43.png](docs/images/Bildschirmfoto%202026-03-01%20um%2012.11.43.png)
 
 ## Tech Stack
 
