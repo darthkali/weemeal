@@ -314,24 +314,29 @@ export default function RecipeDetailView({recipe}: RecipeDetailViewProps) {
                 title="Bring! Einkaufsliste"
             >
                 <div className="flex flex-col items-center gap-6">
-                    <div className="p-4 bg-white rounded-2xl shadow-inner border border-gray-100">
-                        <QRCodeSVG value={bringUrl} size={200}/>
-                    </div>
-                    <div className="text-center space-y-2">
-                        <p className="text-text-dark font-medium">
-                            Scanne den QR-Code mit der Bring! App
-                        </p>
-                        <p className="text-sm text-text-muted">
-                            Die Zutaten werden automatisch zu deiner Einkaufsliste hinzugefuegt.
+                    <div className="flex flex-col items-center gap-1">
+                        <div className="p-4 bg-white rounded-2xl shadow-inner border border-gray-100">
+                            <QRCodeSVG value={bringUrl} size={200}/>
+                        </div>
+
+                        <p className="text-xs text-center">
+                            Scanne den QR-Code um die Zutaten direkt in deine Bring! Einkaufsliste zu importieren.
                         </p>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-primary-subtle rounded-xl">
-                        <FontAwesomeIcon icon={faUsers} className="w-4 h-4 text-primary"/>
-                        <span className="text-sm font-medium text-primary">
-                            {portions} Portionen (Original: {recipe.recipeYield})
-                        </span>
-                    </div>
+
+                    <h1> ODER</h1>
+
+                    <button
+                        className="px-4 py-2 bg-primary text-white rounded-xl"
+                    >
+                        <a href={bringUrl} target="_blank">Direkt in Bring öffnen</a>
+                    </button>
+
+
+
                 </div>
+
+
             </Modal>
 
             {/* Delete Dialog */}
