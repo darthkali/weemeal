@@ -57,7 +57,7 @@
     "next-test-api-route-handler": "5.0.7",
     "postcss": "8.5.28",
     "semantic-release": "25.0.9",
-    "typescript": "5.9.3",
+    "typescript": "7.0.2",
     "vitest": "5.0.1"
   }
 }
