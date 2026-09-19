@@ -10,6 +10,10 @@ export default defineConfig({
         setupFiles: ['./vitest.setup.tsx'],
         include: ['**/*.test.{ts,tsx}'],
         exclude: ['node_modules', '.next', 'src'],
+        env: {
+            AUTH_SECRET: 'test-secret-not-for-production',
+            AUTH_MODE: 'local',
+        },
         coverage: {
             provider: 'v8',
             reporter: ['text', 'html'],

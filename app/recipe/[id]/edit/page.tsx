@@ -1,4 +1,5 @@
 import {notFound} from 'next/navigation';
+import {headers} from 'next/headers';
 import RecipeFormView from '@/components/recipe/RecipeFormView';
 import {RecipeResponse} from '@/types/recipe';
 
@@ -9,8 +10,11 @@ interface EditRecipePageProps {
 async function getRecipe(id: string): Promise<RecipeResponse | null> {
     try {
         const baseUrl = process.env.APP_URL || 'http://localhost:3000';
+        // Forward the caller's session cookie — the recipe API now requires auth.
+        const cookie = (await headers()).get('cookie') ?? '';
         const response = await fetch(`${baseUrl}/api/recipes/${id}`, {
             cache: 'no-store',
+            headers: {cookie},
         });
 
         if (!response.ok) {

@@ -2,17 +2,19 @@ import type {Metadata} from 'next';
 import './globals.css';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
+import {auth} from '@/auth';
 
 export const metadata: Metadata = {
   title: 'WeeMeal - Dein Rezeptbuch',
   description: 'Dein digitales Rezeptbuch mit Einkaufslisten-Integration fuer die Bring! App',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
                                        children,
                                    }: {
     children: React.ReactNode;
 }) {
+    const session = await auth();
     return (
         <html lang="de">
         <head>
@@ -25,7 +27,7 @@ export default function RootLayout({
           />
         </head>
         <body className="min-h-screen flex flex-col bg-background">
-        <Navbar/>
+        <Navbar username={session?.user?.name}/>
         <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {children}
         </main>

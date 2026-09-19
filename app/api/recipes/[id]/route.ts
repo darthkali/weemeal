@@ -3,6 +3,7 @@ import {revalidatePath} from 'next/cache';
 import {recipeRepository} from '@/lib/mongodb/repositories/RecipeRepository';
 import {validateRecipeUpdate} from '@/lib/validations/recipeSchema';
 import {deleteImage, extractImageIdFromUrl, isLocalImageUrl} from '@/lib/images/storage';
+import {sessionGuard} from '@/lib/auth/session';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -10,6 +11,9 @@ interface RouteParams {
 
 // GET /api/recipes/[id] - Get a single recipe
 export async function GET(request: NextRequest, {params}: RouteParams) {
+    const unauthorized = await sessionGuard();
+    if (unauthorized) return unauthorized;
+
     try {
         const {id} = await params;
         const recipe = await recipeRepository.findById(id);
@@ -47,6 +51,9 @@ export async function GET(request: NextRequest, {params}: RouteParams) {
 
 // PUT /api/recipes/[id] - Update a recipe
 export async function PUT(request: NextRequest, {params}: RouteParams) {
+    const unauthorized = await sessionGuard();
+    if (unauthorized) return unauthorized;
+
     try {
         const {id} = await params;
         const body = await request.json();
@@ -136,6 +143,9 @@ export async function PUT(request: NextRequest, {params}: RouteParams) {
 
 // DELETE /api/recipes/[id] - Delete a recipe
 export async function DELETE(request: NextRequest, {params}: RouteParams) {
+    const unauthorized = await sessionGuard();
+    if (unauthorized) return unauthorized;
+
     try {
         const {id} = await params;
 

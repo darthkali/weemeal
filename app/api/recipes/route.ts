@@ -1,9 +1,13 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {recipeRepository} from '@/lib/mongodb/repositories/RecipeRepository';
 import {validateRecipeInput} from '@/lib/validations/recipeSchema';
+import {sessionGuard} from '@/lib/auth/session';
 
 // GET /api/recipes - Get all recipes
 export async function GET(request: NextRequest) {
+    const unauthorized = await sessionGuard();
+    if (unauthorized) return unauthorized;
+
     try {
         const searchParams = request.nextUrl.searchParams;
         const search = searchParams.get('search');
@@ -40,6 +44,9 @@ export async function GET(request: NextRequest) {
 
 // POST /api/recipes - Create a new recipe
 export async function POST(request: NextRequest) {
+    const unauthorized = await sessionGuard();
+    if (unauthorized) return unauthorized;
+
     try {
         const body = await request.json();
 
