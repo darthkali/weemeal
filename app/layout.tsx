@@ -27,7 +27,7 @@ export default async function RootLayout({
           />
         </head>
         <body className="min-h-screen flex flex-col bg-background">
-        <Navbar username={session?.user?.name}/>
+        <Navbar username={session?.user?.name} isAdmin={session?.user?.role === 'admin'}/>
         <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {children}
         </main>

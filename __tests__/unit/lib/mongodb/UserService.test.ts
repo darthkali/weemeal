@@ -102,7 +102,7 @@ describe('UserService', () => {
             const admin = await userService.createUser('admin', VALID_PW, 'admin');
             const user = await userService.createUser('bob', VALID_PW, 'user');
 
-            await userService.deleteUser(user.id);
+            await userService.deleteUser(admin.id, user.id);
 
             const remaining = await userService.listUsers();
             expect(remaining.map((u) => u.username)).toEqual([admin.username]);
@@ -110,14 +110,22 @@ describe('UserService', () => {
 
         it('refuses to delete the last remaining admin', async () => {
             const admin = await userService.createUser('admin', VALID_PW, 'admin');
-            await expect(userService.deleteUser(admin.id)).rejects.toThrow();
+            const bob = await userService.createUser('bob', VALID_PW, 'user');
+            await expect(userService.deleteUser(bob.id, admin.id)).rejects.toThrow();
         });
 
         it('allows deleting an admin when another admin remains', async () => {
             const admin1 = await userService.createUser('admin1', VALID_PW, 'admin');
+            const admin2 = await userService.createUser('admin2', VALID_PW, 'admin');
+
+            await expect(userService.deleteUser(admin1.id, admin2.id)).resolves.toBeUndefined();
+        });
+
+        it('refuses to let a user delete their own account', async () => {
+            const admin1 = await userService.createUser('admin1', VALID_PW, 'admin');
             await userService.createUser('admin2', VALID_PW, 'admin');
 
-            await expect(userService.deleteUser(admin1.id)).resolves.toBeUndefined();
+            await expect(userService.deleteUser(admin1.id, admin1.id)).rejects.toThrow();
         });
     });
 

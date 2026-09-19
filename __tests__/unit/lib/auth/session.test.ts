@@ -1,9 +1,21 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {Session} from 'next-auth';
-import {requireSession, sessionGuard, UnauthorizedError} from '@/lib/auth/session';
+import {
+    ForbiddenError,
+    requireAdmin,
+    requireSession,
+    sessionGuard,
+    UnauthorizedError,
+} from '@/lib/auth/session';
 
 const SESSION = {
     user: {id: 'u1', name: 'root', role: 'admin'},
+    authMode: 'local',
+    expires: '2999-01-01T00:00:00.000Z',
+} as unknown as Session;
+
+const USER_SESSION = {
+    user: {id: 'u2', name: 'bob', role: 'user'},
     authMode: 'local',
     expires: '2999-01-01T00:00:00.000Z',
 } as unknown as Session;
@@ -48,5 +60,24 @@ describe('sessionGuard', () => {
                 throw boom;
             })
         ).rejects.toBe(boom);
+    });
+});
+
+describe('requireAdmin', () => {
+    it('returns the session for an admin', async () => {
+        const session = await requireAdmin(async () => SESSION);
+        expect(session.user.role).toBe('admin');
+    });
+
+    it('throws ForbiddenError for a non-admin user', async () => {
+        await expect(requireAdmin(async () => USER_SESSION)).rejects.toBeInstanceOf(
+            ForbiddenError
+        );
+    });
+
+    it('throws UnauthorizedError when there is no session', async () => {
+        await expect(requireAdmin(async () => null)).rejects.toBeInstanceOf(
+            UnauthorizedError
+        );
     });
 });

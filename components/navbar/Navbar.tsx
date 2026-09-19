@@ -2,15 +2,34 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import {useEffect, useRef, useState} from 'react';
 import {signOut} from 'next-auth/react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faRightFromBracket} from '@fortawesome/free-solid-svg-icons';
+import {faRightFromBracket, faUsersGear} from '@fortawesome/free-solid-svg-icons';
 
 interface NavbarProps {
     username?: string | null;
+    isAdmin?: boolean;
 }
 
-export default function Navbar({username}: NavbarProps) {
+export default function Navbar({username, isAdmin}: NavbarProps) {
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Klick außerhalb schließt das Menü.
+    useEffect(() => {
+        if (!menuOpen) return;
+        function handleClick(event: MouseEvent) {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setMenuOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [menuOpen]);
+
+    const initial = username?.trim().charAt(0).toUpperCase() || '?';
+
     return (
         <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
             <div className="container mx-auto px-4">
@@ -37,17 +56,50 @@ export default function Navbar({username}: NavbarProps) {
                     </Link>
 
                     {username && (
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm text-text-muted hidden sm:block">{username}</span>
+                        <div className="relative" ref={menuRef}>
                             <button
                                 type="button"
-                                onClick={() => signOut({callbackUrl: '/login'})}
-                                className="btn btn-ghost"
-                                aria-label="Abmelden"
+                                onClick={() => setMenuOpen((open) => !open)}
+                                className="w-10 h-10 rounded-full bg-primary text-white font-semibold flex items-center justify-center shadow-sm hover:bg-primary-hover transition-colors"
+                                aria-label="Benutzermenü"
+                                aria-haspopup="menu"
+                                aria-expanded={menuOpen}
                             >
-                                <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4"/>
-                                <span className="hidden sm:inline">Abmelden</span>
+                                {initial}
                             </button>
+
+                            {menuOpen && (
+                                <div
+                                    role="menu"
+                                    className="absolute right-0 mt-2 w-56 rounded-2xl bg-white shadow-lg shadow-black/10 border border-gray-100 py-2"
+                                >
+                                    <div className="px-4 py-2 border-b border-gray-100">
+                                        <p className="text-sm font-medium text-text-dark truncate">{username}</p>
+                                    </div>
+
+                                    {isAdmin && (
+                                        <Link
+                                            href="/admin"
+                                            role="menuitem"
+                                            onClick={() => setMenuOpen(false)}
+                                            className="flex items-center gap-2 px-4 py-2 text-sm text-text-dark hover:bg-gray-50 transition-colors"
+                                        >
+                                            <FontAwesomeIcon icon={faUsersGear} className="w-4 h-4"/>
+                                            Nutzerverwaltung
+                                        </Link>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        role="menuitem"
+                                        onClick={() => signOut({callbackUrl: '/login'})}
+                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-text-dark hover:bg-gray-50 transition-colors"
+                                    >
+                                        <FontAwesomeIcon icon={faRightFromBracket} className="w-4 h-4"/>
+                                        Abmelden
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

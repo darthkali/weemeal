@@ -10,6 +10,20 @@ export interface PublicUser {
     role: UserRole;
 }
 
+// Domänenfehler des UserService. Erlaubt Route-Handlern, Invarianten/Policy als
+// 4xx zu mappen statt als 500. `code` steuert den HTTP-Status.
+export type UserServiceErrorCode = 'not_found' | 'conflict' | 'invariant' | 'policy';
+
+export class UserServiceError extends Error {
+    code: UserServiceErrorCode;
+
+    constructor(message: string, code: UserServiceErrorCode) {
+        super(message);
+        this.name = 'UserServiceError';
+        this.code = code;
+    }
+}
+
 function toPublicUser(doc: IUserDocument): PublicUser {
     return {
         id: (doc._id as mongoose.Types.ObjectId).toString(),
@@ -80,7 +94,7 @@ export class UserService {
 
         const policy = validatePasswordPolicy(password);
         if (!policy.valid) {
-            throw new Error(policy.message);
+            throw new UserServiceError(policy.message ?? 'Invalid password', 'policy');
         }
 
         // Schema trimmt beim Speichern — hier gleich normalisieren, damit
@@ -89,7 +103,7 @@ export class UserService {
 
         const existing = await User.findOne({username: normalizedUsername}).exec();
         if (existing) {
-            throw new Error(`Username '${normalizedUsername}' is already taken`);
+            throw new UserServiceError(`Username '${normalizedUsername}' is already taken`, 'conflict');
         }
 
         try {
@@ -100,7 +114,7 @@ export class UserService {
         } catch (error) {
             // Race gegen den Unique-Index: freundliche Meldung statt E11000.
             if (isDuplicateKeyError(error)) {
-                throw new Error(`Username '${normalizedUsername}' is already taken`);
+                throw new UserServiceError(`Username '${normalizedUsername}' is already taken`, 'conflict');
             }
             throw error;
         }
@@ -112,35 +126,39 @@ export class UserService {
         return users.map(toPublicUser);
     }
 
-    async deleteUser(id: string): Promise<void> {
+    async deleteUser(actorId: string, targetId: string): Promise<void> {
         await this.ensureConnection();
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw new Error('User not found');
+        if (!mongoose.Types.ObjectId.isValid(targetId)) {
+            throw new UserServiceError('User not found', 'not_found');
         }
 
-        const user = await User.findById(id).exec();
+        if (actorId === targetId) {
+            throw new UserServiceError('You cannot delete your own account', 'invariant');
+        }
+
+        const user = await User.findById(targetId).exec();
         if (!user) {
-            throw new Error('User not found');
+            throw new UserServiceError('User not found', 'not_found');
         }
 
         if (user.role === 'admin' && (await this.countAdmins()) <= 1) {
-            throw new Error('Cannot delete the last remaining admin');
+            throw new UserServiceError('Cannot delete the last remaining admin', 'invariant');
         }
 
-        await User.findByIdAndDelete(id).exec();
+        await User.findByIdAndDelete(targetId).exec();
     }
 
     async setRole(actorId: string, targetId: string, role: UserRole): Promise<PublicUser> {
         await this.ensureConnection();
 
         if (!mongoose.Types.ObjectId.isValid(targetId)) {
-            throw new Error('User not found');
+            throw new UserServiceError('User not found', 'not_found');
         }
 
         const user = await User.findById(targetId).exec();
         if (!user) {
-            throw new Error('User not found');
+            throw new UserServiceError('User not found', 'not_found');
         }
 
         // Kein State-Change → kein Write, kein updatedAt-Bump.
@@ -151,11 +169,11 @@ export class UserService {
         const demotingToUser = user.role === 'admin' && role === 'user';
 
         if (demotingToUser && actorId === targetId) {
-            throw new Error('Admins cannot remove their own admin role');
+            throw new UserServiceError('Admins cannot remove their own admin role', 'invariant');
         }
 
         if (demotingToUser && (await this.countAdmins()) <= 1) {
-            throw new Error('Cannot demote the last remaining admin');
+            throw new UserServiceError('Cannot demote the last remaining admin', 'invariant');
         }
 
         user.role = role;
@@ -167,17 +185,17 @@ export class UserService {
         await this.ensureConnection();
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw new Error('User not found');
+            throw new UserServiceError('User not found', 'not_found');
         }
 
         const policy = validatePasswordPolicy(newPassword);
         if (!policy.valid) {
-            throw new Error(policy.message);
+            throw new UserServiceError(policy.message ?? 'Invalid password', 'policy');
         }
 
         const user = await User.findById(id).exec();
         if (!user) {
-            throw new Error('User not found');
+            throw new UserServiceError('User not found', 'not_found');
         }
 
         user.passwordHash = await hashPassword(newPassword);
@@ -192,22 +210,22 @@ export class UserService {
         await this.ensureConnection();
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            throw new Error('User not found');
+            throw new UserServiceError('User not found', 'not_found');
         }
 
         const user = await User.findById(id).exec();
         if (!user) {
-            throw new Error('User not found');
+            throw new UserServiceError('User not found', 'not_found');
         }
 
         const ok = await verifyPassword(oldPassword, user.passwordHash);
         if (!ok) {
-            throw new Error('Current password is incorrect');
+            throw new UserServiceError('Current password is incorrect', 'invariant');
         }
 
         const policy = validatePasswordPolicy(newPassword);
         if (!policy.valid) {
-            throw new Error(policy.message);
+            throw new UserServiceError(policy.message ?? 'Invalid password', 'policy');
         }
 
         user.passwordHash = await hashPassword(newPassword);

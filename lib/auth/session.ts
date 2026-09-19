@@ -8,6 +8,13 @@ export class UnauthorizedError extends Error {
     }
 }
 
+export class ForbiddenError extends Error {
+    constructor(message = 'Forbidden') {
+        super(message);
+        this.name = 'ForbiddenError';
+    }
+}
+
 type SessionGetter = () => Promise<Session | null>;
 
 // Auth.js lazy laden, damit Verbraucher/Tests, die einen eigenen Getter
@@ -50,5 +57,20 @@ export async function sessionGuard(
         }
         throw error;
     }
+}
+
+/**
+ * Erzwingt eine Session mit Rolle `admin`. Wirft `UnauthorizedError` ohne
+ * Session, `ForbiddenError` bei fehlender Admin-Rolle. Route-Handler mappen
+ * diese Fehler via `handleApiError` auf 401/403.
+ */
+export async function requireAdmin(
+    getSession: SessionGetter = defaultGetSession
+): Promise<Session> {
+    const session = await requireSession(getSession);
+    if (session.user.role !== 'admin') {
+        throw new ForbiddenError();
+    }
+    return session;
 }
 

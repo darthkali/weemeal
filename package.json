@@ -27,6 +27,7 @@
     "bcryptjs": "^3.0.3",
     "browser-image-compression": "2.0.2",
     "heic2any": "0.0.4",
+    "lucide-react": "^1.47.0",
     "marked": "18.0.13",
     "mongodb": "7.6.0",
     "mongoose": "9.10.1",
