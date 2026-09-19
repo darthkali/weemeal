@@ -1,10 +1,14 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {userService} from '@/lib/mongodb/repositories/UserService';
-import {requireAdmin} from '@/lib/auth/session';
+import {localAuthGuard, requireAdmin} from '@/lib/auth/session';
 import {handleApiError} from '@/lib/api/errors';
 
 // GET /api/admin/users - list all users (admin only)
 export async function GET() {
+    // User-Verwaltung existiert nur im local-Modus.
+    const notLocal = localAuthGuard();
+    if (notLocal) return notLocal;
+
     try {
         await requireAdmin();
         const users = await userService.listUsers();
@@ -16,6 +20,9 @@ export async function GET() {
 
 // POST /api/admin/users - create a user with initial password + role (admin only)
 export async function POST(request: NextRequest) {
+    const notLocal = localAuthGuard();
+    if (notLocal) return notLocal;
+
     try {
         await requireAdmin();
 

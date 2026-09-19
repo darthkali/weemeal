@@ -1,20 +1,26 @@
-import {redirect} from 'next/navigation';
+import {notFound, redirect} from 'next/navigation';
 import {auth} from '@/auth';
+import {isLocalAuth} from '@/auth.config';
 import ChangePasswordForm from '@/components/account/ChangePasswordForm';
 
 export const metadata = {
     title: 'Konto - WeeMeal',
 };
 
+// Der Auth Mode entscheidet zur Laufzeit, nicht beim Build: ohne dies würde
+// Next diese Seite prerendern und den Modus des Build-Rechners einfrieren
+// (ADR 0003 — dasselbe Image muss jeden Modus fahren können).
+export const dynamic = 'force-dynamic';
+
 export default async function AccountPage() {
+    // Nur im local-Modus verwaltet WeeMeal das Passwort selbst.
+    if (!isLocalAuth()) {
+        notFound();
+    }
+
     const session = await auth();
     if (!session?.user) {
         redirect('/login');
-    }
-
-    // Im keycloak-Modus verwaltet der Identity Provider die Passwörter.
-    if (session.authMode !== 'local') {
-        redirect('/');
     }
 
     return (

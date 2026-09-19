@@ -2,6 +2,8 @@
 
 WeeMeal unterstützt zwei Authentifizierungs-Modi hinter einem gemeinsamen `IdentityProvider`-Interface, pro Deployment per Env (`AUTH_MODE=keycloak|local`) fest gewählt: **keycloak** (OIDC gegen eine bestehende Keycloak-Instanz, User + Rollen dort verwaltet, kein App-Admin-Panel) und **local** (WeeMeal-eigene User in MongoDB mit Username + Passwort, App-Admin-Panel für User-Verwaltung, Seed-Admin beim Start). Wir bauen beides, weil der Betreiber Keycloak bereits nutzt und seine dortigen User wiederverwenden will, WeeMeal aber auch ohne externen IdP lauffähig sein soll.
 
+**Nachtrag:** Seit ADR 0003 gibt es zusätzlich den Modus `none` (gar keine Authentifizierung). Das Seam bleibt unverändert — `none` registriert schlicht keinen Identity Provider.
+
 ## Considered Options
 
 - **Nur Keycloak**: verworfen — zwingt jede Installation zu Keycloak-Infra.

@@ -1,7 +1,24 @@
 import type {NextAuthConfig} from 'next-auth';
 
-// Pro Deployment fest gewählter Auth-Modus (ADR 0001).
-export const AUTH_MODE = process.env.AUTH_MODE ?? 'local';
+// Pro Deployment fest gewählter Auth-Modus (ADR 0001, ADR 0003).
+export type AuthMode = 'keycloak' | 'local' | 'none';
+
+// Default ist 'none': eine Instanz ohne Auth-Konfiguration startet ohne
+// Login — und damit auch ohne Pflicht, AUTH_SECRET zu setzen. Zugangsschutz
+// ist eine bewusste Konfigurationsentscheidung des Betreibers (ADR 0003).
+export const AUTH_MODE = ((process.env.AUTH_MODE || 'none').trim() as AuthMode);
+
+// 'none': WeeMeal läuft ohne Authentifizierung — keine Session, kein Login,
+// kein User, kein Admin-Panel. Jeder Besucher sieht und bearbeitet alles.
+export function isAuthDisabled(): boolean {
+    return AUTH_MODE === 'none';
+}
+
+// User-Verwaltung und eigene Passwörter gibt es nur im local-Modus; im
+// keycloak-Modus liegen sie beim Identity Provider, im none-Modus nirgends.
+export function isLocalAuth(): boolean {
+    return AUTH_MODE === 'local';
+}
 
 /**
  * Edge-sicherer Teil der Auth.js-Konfiguration: keine DB-, keine

@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import authConfig, {AUTH_MODE} from './auth.config';
+import authConfig, {AUTH_MODE, isAuthDisabled} from './auth.config';
 import {authorizeCredentials} from '@/lib/auth/authorize';
 
 // Voller Node-Setup: hier — und nur hier — hängt der Credentials-Provider am
@@ -20,8 +20,9 @@ const providers =
         : [];
 
 // keycloak-Modus (OIDC) kommt in T6 (#147). Bis dahin registriert ein anderer
-// AUTH_MODE keinen Provider — laut warnen, statt still auszusperren.
-if (providers.length === 0) {
+// AUTH_MODE keinen Provider — laut warnen, statt still auszusperren. Im
+// none-Modus ist genau das der Zweck, also dort kein Lärm.
+if (providers.length === 0 && !isAuthDisabled()) {
     console.warn(
         `[auth] AUTH_MODE='${AUTH_MODE}' registriert keinen Login-Provider — kein Login möglich. ` +
             `Aktuell wird nur 'local' unterstützt (keycloak folgt in T6).`

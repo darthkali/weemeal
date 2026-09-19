@@ -14,7 +14,12 @@ const {requireSessionMock, changeOwnPasswordMock} = vi.hoisted(() => ({
 // nicht greifen, auch wenn eine gültige Session existiert.
 vi.mock('@/auth.config', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@/auth.config')>();
-    return {...actual, AUTH_MODE: 'keycloak'};
+    return {
+        ...actual,
+        AUTH_MODE: 'keycloak',
+        isAuthDisabled: () => false,
+        isLocalAuth: () => false,
+    };
 });
 
 vi.mock('@/lib/auth/session', async (importOriginal) => {

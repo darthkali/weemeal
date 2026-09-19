@@ -3,6 +3,7 @@ import './globals.css';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
 import {auth} from '@/auth';
+import {isAuthDisabled} from '@/auth.config';
 
 export const metadata: Metadata = {
   title: 'WeeMeal - Dein Rezeptbuch',
@@ -14,7 +15,8 @@ export default async function RootLayout({
                                    }: {
     children: React.ReactNode;
 }) {
-    const session = await auth();
+    // Im none-Modus wird Auth.js nicht angefasst — es gibt keine Session.
+    const session = isAuthDisabled() ? null : await auth();
     return (
         <html lang="de">
         <head>

@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {userService} from '@/lib/mongodb/repositories/UserService';
-import {requireAdmin} from '@/lib/auth/session';
+import {localAuthGuard, requireAdmin} from '@/lib/auth/session';
 import {handleApiError} from '@/lib/api/errors';
 
 interface RouteParams {
@@ -9,6 +9,10 @@ interface RouteParams {
 
 // DELETE /api/admin/users/[id] - delete a user (admin only)
 export async function DELETE(_request: NextRequest, {params}: RouteParams) {
+    // User-Verwaltung existiert nur im local-Modus.
+    const notLocal = localAuthGuard();
+    if (notLocal) return notLocal;
+
     try {
         const session = await requireAdmin();
         const {id} = await params;
@@ -21,6 +25,9 @@ export async function DELETE(_request: NextRequest, {params}: RouteParams) {
 
 // PATCH /api/admin/users/[id] - change role ({role}) or reset password ({password})
 export async function PATCH(request: NextRequest, {params}: RouteParams) {
+    const notLocal = localAuthGuard();
+    if (notLocal) return notLocal;
+
     try {
         const session = await requireAdmin();
         const {id} = await params;

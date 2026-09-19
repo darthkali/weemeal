@@ -1,13 +1,17 @@
 import NextAuth from 'next-auth';
 import {NextResponse} from 'next/server';
-import authConfig from './auth.config';
+import type {NextFetchEvent, NextRequest} from 'next/server';
+import authConfig, {isAuthDisabled} from './auth.config';
 
 // Proxy (früher middleware.ts, in Next 16 umbenannt) nutzt nur den
 // edge-sicheren authConfig (JWT-Prüfung), niemals den Credentials-Provider/
 // Mongoose aus auth.ts.
-const {auth} = NextAuth(authConfig);
-
-export default auth((req) => {
+//
+// Im none-Modus wird Auth.js gar nicht erst initialisiert: es gibt nichts zu
+// prüfen, und ein Deployment ohne Login soll auch ohne AUTH_SECRET starten
+// (ADR 0003). Der Matcher bleibt unverändert, damit dasselbe Image jeden
+// Modus fahren kann — der Modus entscheidet zur Laufzeit, nicht beim Build.
+function guardRequest(req: {nextUrl: URL; auth: unknown}) {
     const {nextUrl} = req;
     const isLoggedIn = !!req.auth;
 
@@ -24,7 +28,21 @@ export default auth((req) => {
     const loginUrl = new URL('/login', nextUrl);
     loginUrl.searchParams.set('callbackUrl', nextUrl.pathname + nextUrl.search);
     return NextResponse.redirect(loginUrl);
-});
+}
+
+const authProxy = isAuthDisabled() ? null : NextAuth(authConfig).auth(guardRequest);
+
+export default function proxy(request: NextRequest, event: NextFetchEvent) {
+    if (!authProxy) {
+        return NextResponse.next();
+    }
+    // Auth.js typisiert seinen Handler für Route-Handler mit (ungenutzten)
+    // `params`; als Middleware bekommt er stattdessen das NextFetchEvent.
+    return (authProxy as unknown as (req: NextRequest, event: NextFetchEvent) => unknown)(
+        request,
+        event
+    );
+}
 
 export const config = {
     // Alles schützen außer:

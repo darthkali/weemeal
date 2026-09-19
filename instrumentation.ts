@@ -5,7 +5,7 @@ export async function register() {
     if (process.env.NEXT_RUNTIME !== 'nodejs') {
         return;
     }
-    if ((process.env.AUTH_MODE ?? 'local') !== 'local') {
+    if ((process.env.AUTH_MODE || 'none').trim() !== 'local') {
         return;
     }
 
