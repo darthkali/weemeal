@@ -5,14 +5,17 @@ import Link from 'next/link';
 import {useEffect, useRef, useState} from 'react';
 import {signOut} from 'next-auth/react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faRightFromBracket, faUsersGear} from '@fortawesome/free-solid-svg-icons';
+import {faKey, faRightFromBracket, faUsersGear} from '@fortawesome/free-solid-svg-icons';
 
 interface NavbarProps {
     username?: string | null;
     isAdmin?: boolean;
+    // Passwort ändern gibt es nur im local-Modus; im keycloak-Modus liegt das
+    // Passwort beim Identity Provider.
+    canChangePassword?: boolean;
 }
 
-export default function Navbar({username, isAdmin}: NavbarProps) {
+export default function Navbar({username, isAdmin, canChangePassword}: NavbarProps) {
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +79,18 @@ export default function Navbar({username, isAdmin}: NavbarProps) {
                                     <div className="px-4 py-2 border-b border-gray-100">
                                         <p className="text-sm font-medium text-text-dark truncate">{username}</p>
                                     </div>
+
+                                    {canChangePassword && (
+                                        <Link
+                                            href="/account"
+                                            role="menuitem"
+                                            onClick={() => setMenuOpen(false)}
+                                            className="flex items-center gap-2 px-4 py-2 text-sm text-text-dark hover:bg-gray-50 transition-colors"
+                                        >
+                                            <FontAwesomeIcon icon={faKey} className="w-4 h-4"/>
+                                            Passwort ändern
+                                        </Link>
+                                    )}
 
                                     {isAdmin && (
                                         <Link

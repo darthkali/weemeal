@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {
     PASSWORD_POLICY_MESSAGE,
     validatePasswordPolicy,
-} from '@/lib/auth/password';
+} from '@/lib/auth/passwordPolicy';
 
 describe('validatePasswordPolicy', () => {
     it('accepts a password meeting all rules', () => {

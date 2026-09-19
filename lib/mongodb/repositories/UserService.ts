@@ -1,7 +1,8 @@
 import {connectToDatabase} from '../connection';
 import User, {IUserDocument, UserRole} from '../models/User';
 import mongoose from 'mongoose';
-import {hashPassword, validatePasswordPolicy, verifyPassword} from '@/lib/auth/password';
+import {hashPassword, verifyPassword} from '@/lib/auth/password';
+import {validatePasswordPolicy} from '@/lib/auth/passwordPolicy';
 
 // Nach außen sichtbarer User — nie mit passwordHash.
 export interface PublicUser {
