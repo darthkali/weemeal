@@ -323,20 +323,11 @@ export default function RecipeDetailView({recipe}: RecipeDetailViewProps) {
                             Scanne den QR-Code um die Zutaten direkt in deine Bring! Einkaufsliste zu importieren.
                         </p>
                     </div>
-
                     <h1> ODER</h1>
-
-                    <button
-                        className="px-4 py-2 bg-primary text-white rounded-xl"
-                    >
+                    <button className="px-4 py-2 bg-primary text-white rounded-xl">
                         <a href={bringUrl} target="_blank">Direkt in Bring öffnen</a>
                     </button>
-
-
-
                 </div>
-
-
             </Modal>
 
             {/* Delete Dialog */}
