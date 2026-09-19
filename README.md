@@ -160,8 +160,6 @@ storage. Protect it with the `ADMIN_SECRET` environment variable.
 |--------------------|-------------------------|-----------------------|
 | MongoDB            | `localhost:27017`       | weemeal / weemeal_dev |
 | Mongo Express      | `http://localhost:8081` | -                     |
-| Keycloak Admin     | `http://localhost:8080` | admin / admin         |
-| Keycloak Test User | -                       | testuser / test123    |
 
 ## Docker Hub
 
