@@ -1,6 +1,7 @@
 'use client';
 
 import {useState} from 'react';
+import PasswordInput from '@/components/ui/PasswordInput';
 import {PASSWORD_POLICY_HINT, validatePasswordPolicy} from '@/lib/auth/passwordPolicy';
 
 async function readError(response: Response): Promise<string> {
@@ -74,57 +75,38 @@ export default function ChangePasswordForm() {
 
     return (
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
-            <div className="space-y-1">
-                <label htmlFor="currentPassword" className="text-sm font-medium text-text-dark">
-                    Aktuelles Passwort
-                </label>
-                <input
-                    id="currentPassword"
-                    name="currentPassword"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="input w-full"
-                />
-            </div>
+            <PasswordInput
+                id="currentPassword"
+                label="Aktuelles Passwort"
+                value={currentPassword}
+                onChange={setCurrentPassword}
+                autoComplete="current-password"
+                required
+            />
 
             <div className="space-y-1">
-                <label htmlFor="newPassword" className="text-sm font-medium text-text-dark">
-                    Neues Passwort
-                </label>
-                <input
+                <PasswordInput
                     id="newPassword"
-                    name="newPassword"
-                    type="password"
+                    label="Neues Passwort"
+                    value={newPassword}
+                    onChange={setNewPassword}
                     autoComplete="new-password"
                     required
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    aria-describedby="passwordPolicyHint"
-                    className="input w-full"
+                    describedBy="passwordPolicyHint"
                 />
                 <p id="passwordPolicyHint" className="text-xs text-text-muted">
                     {PASSWORD_POLICY_HINT}
                 </p>
             </div>
 
-            <div className="space-y-1">
-                <label htmlFor="confirmPassword" className="text-sm font-medium text-text-dark">
-                    Neues Passwort bestätigen
-                </label>
-                <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="input w-full"
-                />
-            </div>
+            <PasswordInput
+                id="confirmPassword"
+                label="Neues Passwort bestätigen"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                autoComplete="new-password"
+                required
+            />
 
             {error && (
                 <p className="text-sm text-error" role="alert">

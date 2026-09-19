@@ -99,6 +99,20 @@ describe('ChangePasswordForm', () => {
         expect(fetch).not.toHaveBeenCalled();
     });
 
+    it('reveals each password field on its own eye toggle', () => {
+        render(<ChangePasswordForm/>);
+
+        for (const label of [
+            'Aktuelles Passwort',
+            'Neues Passwort',
+            'Neues Passwort bestätigen',
+        ]) {
+            expect(screen.getByLabelText(label)).toHaveAttribute('type', 'password');
+            fireEvent.click(screen.getByRole('button', {name: `${label} anzeigen`}));
+            expect(screen.getByLabelText(label)).toHaveAttribute('type', 'text');
+        }
+    });
+
     it('shows a network error message when the request fails', async () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
 
