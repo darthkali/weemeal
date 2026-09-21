@@ -28,6 +28,11 @@ jobs:
         env:
           MONGODB_URI: mongodb://placeholder:27017/placeholder
 
+      # Built without AUTH_MODE like the Docker image: no page that renders
+      # the root layout may be prerendered with the build's empty session.
+      - name: Check that no page is prerendered
+        run: node scripts/check-no-static-pages.mjs
+
   release:
     name: Release and Deploy
     runs-on: ubuntu-latest
