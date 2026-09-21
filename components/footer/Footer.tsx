@@ -30,7 +30,7 @@ export default function Footer() {
                     {/* Links */}
                     <div className="flex items-center gap-4 text-sm">
                         <Link
-                            href="https://github.com/weemeal"
+                            href="https://github.com/darthkali/weemeal"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 text-text-muted hover:text-text-dark transition-colors"
@@ -39,7 +39,7 @@ export default function Footer() {
                             <span>GitHub</span>
                         </Link>
                         <Link
-                            href="https://github.com/weemeal/weemeal-frontend-react/issues"
+                            href="https://github.com/darthkali/weemeal/issues"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-text-muted hover:text-text-dark transition-colors"
