@@ -215,6 +215,11 @@ cookie carries no refresh token to check with.
 realm's `end_session_endpoint`), so the next login asks for credentials instead
 of silently going through via SSO. This needs no extra client configuration.
 
+**Debugging a session that does not stick.** Set `AUTH_DEBUG=true` and Auth.js
+logs why it drops a session — a cookie it cannot decrypt, a refresh that was
+refused, a configuration it rejects. Turn it off again afterwards: the output is
+verbose and names token internals.
+
 ### Behind a reverse proxy
 
 Terminate TLS in your proxy, forward `X-Forwarded-Proto` and

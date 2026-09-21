@@ -44,6 +44,10 @@ export const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
  */
 export const authConfig = {
     trustHost: true,
+    // Auth.js begründet mit `AUTH_DEBUG=true` im Log, warum es eine Session
+    // verwirft (defekte Cookies, Konfigurationsfehler) — sonst schweigt es.
+    // Kein Dauerbetrieb: die Ausgabe ist gesprächig und nennt Token-Interna.
+    debug: process.env.AUTH_DEBUG === 'true',
     // Im keycloak-Modus hängt die WeeMeal-Session an der Keycloak-Session und
     // wird bei jedem Request gegen sie geprüft; die Stunde ist eine
     // zusätzliche Obergrenze (rollend, solange Requests laufen). In den
