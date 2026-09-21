@@ -86,17 +86,10 @@ export const authConfig = {
                 return token;
             }
 
-            // Nur bei abgelaufenem Access-Token refreshen, nicht bei jedem
-            // Request — der Callback läuft auch im edge-Proxy.
-            if (!isAccessTokenExpired(token.expiresAt)) {
-                return token;
-            }
-
-            // `null` verwirft die Session (Auth.js v5): eine in Keycloak
-            // beendete Session, ein deaktivierter User oder ein entzogenes
-            // weemeal-user landen damit sauber auf der Login-Seite, statt den
-            // Request abzuwerfen.
-            return refreshKeycloakSession(token);
+            // Die Refresh-Prüfung selbst sitzt nicht hier, sondern im Proxy
+            // (siehe `proxyAuthConfig`): nur dort kann das Ergebnis auch ins
+            // Cookie zurück.
+            return token;
         },
         async session({session, token}) {
             if (session.user) {
@@ -118,6 +111,46 @@ export const authConfig = {
             // Scheitert der Realm, bleibt es beim lokalen Logout —
             // endKeycloakSession schluckt den Fehler selbst.
             await endKeycloakSession(message.token?.idToken);
+        },
+    },
+} satisfies NextAuthConfig;
+
+/**
+ * Die Konfiguration des Proxy — `authConfig` plus die Refresh-Prüfung.
+ *
+ * Der `jwt`-Callback läuft pro Request an mehreren Stellen: im Proxy, in
+ * `auth()` einer Server Component und in den Auth.js-Endpunkten. Schreiben
+ * kann das Ergebnis nur, wer die Antwort in der Hand hat — der Proxy reicht
+ * sein `Set-Cookie` durch, eine Server Component kann keine Cookies setzen.
+ * Liefe die Prüfung überall, würde dasselbe Refresh-Token mehrfach eingelöst;
+ * bei rotierenden Refresh-Tokens wäre es nach dem ersten Mal verbraucht und
+ * die zweite Prüfung schlüge grundlos fehl.
+ *
+ * Deshalb prüft allein das Gate, durch das ohnehin jeder geschützte Request
+ * läuft. Die anderen Stellen nehmen das Token so, wie es im Cookie steht.
+ */
+export const proxyAuthConfig = {
+    ...authConfig,
+    callbacks: {
+        ...authConfig.callbacks,
+        async jwt(params) {
+            const token = await authConfig.callbacks.jwt(params);
+
+            if (!token || !isKeycloakAuth() || params.account) {
+                return token;
+            }
+
+            // Nur bei abgelaufenem Access-Token nachfragen, nicht bei jedem
+            // Request.
+            if (!isAccessTokenExpired(token.expiresAt)) {
+                return token;
+            }
+
+            // `null` verwirft die Session (Auth.js v5): eine in Keycloak
+            // beendete Session, ein deaktivierter User oder ein entzogenes
+            // weemeal-user landen damit sauber auf der Login-Seite, statt den
+            // Request abzuwerfen.
+            return refreshKeycloakSession(token);
         },
     },
 } satisfies NextAuthConfig;

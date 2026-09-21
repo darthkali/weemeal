@@ -1,11 +1,13 @@
 import NextAuth from 'next-auth';
 import {NextResponse} from 'next/server';
 import type {NextFetchEvent, NextRequest} from 'next/server';
-import authConfig, {isAuthDisabled} from './auth.config';
+import {isAuthDisabled, proxyAuthConfig} from './auth.config';
 
-// Proxy (früher middleware.ts, in Next 16 umbenannt) nutzt nur den
-// edge-sicheren authConfig (JWT-Prüfung), niemals den Credentials-Provider/
-// Mongoose aus auth.ts.
+// Proxy (früher middleware.ts, in Next 16 umbenannt) nutzt nur die
+// edge-sichere Konfiguration (JWT-Prüfung), niemals den Credentials-Provider/
+// Mongoose aus auth.ts. Hier — und nur hier — läuft im keycloak-Modus die
+// Refresh-Prüfung: der Proxy ist das Gate jedes geschützten Requests und die
+// einzige Stelle, die ein erneuertes Token ins Cookie zurückschreiben kann.
 //
 // Im none-Modus wird Auth.js gar nicht erst initialisiert: es gibt nichts zu
 // prüfen, und ein Deployment ohne Login soll auch ohne AUTH_SECRET starten
@@ -30,7 +32,7 @@ function guardRequest(req: {nextUrl: URL; auth: unknown}) {
     return NextResponse.redirect(loginUrl);
 }
 
-const authProxy = isAuthDisabled() ? null : NextAuth(authConfig).auth(guardRequest);
+const authProxy = isAuthDisabled() ? null : NextAuth(proxyAuthConfig).auth(guardRequest);
 
 export default function proxy(request: NextRequest, event: NextFetchEvent) {
     if (!authProxy) {

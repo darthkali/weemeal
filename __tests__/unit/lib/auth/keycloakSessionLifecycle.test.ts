@@ -12,12 +12,12 @@ vi.mock('@/lib/auth/keycloakSession', async (importOriginal) => {
 });
 
 // AUTH_MODE wird beim Import gelesen, also pro Fall frisch laden.
-async function loadConfig(mode: string) {
+async function loadModule(mode: string) {
     vi.resetModules();
     const previous = process.env.AUTH_MODE;
     process.env.AUTH_MODE = mode;
     try {
-        return (await import('@/auth.config')).default;
+        return await import('@/auth.config');
     } finally {
         if (previous === undefined) {
             delete process.env.AUTH_MODE;
@@ -48,6 +48,16 @@ afterEach(() => {
     vi.resetModules();
 });
 
+// Die App-Seite: speichert die Tokens, prüft aber nicht nach.
+async function loadConfig(mode: string) {
+    return (await loadModule(mode)).default;
+}
+
+// Das Gate: dieselbe Konfiguration plus Refresh-Prüfung.
+async function loadProxyConfig(mode: string) {
+    return (await loadModule(mode)).proxyAuthConfig;
+}
+
 describe('jwt callback in keycloak mode', () => {
     it('keeps the Keycloak tokens from the login in the JWT', async () => {
         const config = await loadConfig('keycloak');
@@ -71,7 +81,7 @@ describe('jwt callback in keycloak mode', () => {
     });
 
     it('leaves a still-valid access token alone', async () => {
-        const config = await loadConfig('keycloak');
+        const config = await loadProxyConfig('keycloak');
 
         const token = await config.callbacks.jwt({
             token: {sub: 'kc-1', role: 'user', authMode: 'keycloak', expiresAt: FUTURE},
@@ -82,7 +92,7 @@ describe('jwt callback in keycloak mode', () => {
     });
 
     it('refreshes an expired access token and takes over the fresh role', async () => {
-        const config = await loadConfig('keycloak');
+        const config = await loadProxyConfig('keycloak');
         refreshKeycloakSession.mockResolvedValue({
             sub: 'kc-1',
             role: 'admin',
@@ -107,7 +117,7 @@ describe('jwt callback in keycloak mode', () => {
     // Auth.js verwirft die Session, wenn der jwt-Callback null liefert — so
     // wird ein gescheiterter Refresh zum Logout statt zum Fehler.
     it('drops the session when the refresh fails', async () => {
-        const config = await loadConfig('keycloak');
+        const config = await loadProxyConfig('keycloak');
         refreshKeycloakSession.mockResolvedValue(null);
 
         const token = await config.callbacks.jwt({
@@ -124,9 +134,31 @@ describe('jwt callback in keycloak mode', () => {
     });
 });
 
+describe('jwt callback outside the proxy', () => {
+    // Nur der Proxy kann ein erneuertes Token ins Cookie zurückschreiben;
+    // liefe die Prüfung auch in auth(), würde dasselbe Refresh-Token zweimal
+    // eingelöst.
+    it('takes the token as it stands, even when the access token has expired', async () => {
+        const config = await loadConfig('keycloak');
+
+        const token = await config.callbacks.jwt({
+            token: {
+                sub: 'kc-1',
+                role: 'user',
+                authMode: 'keycloak',
+                refreshToken: 'refresh-1',
+                expiresAt: PAST,
+            },
+        } as never);
+
+        expect(token).toMatchObject({role: 'user'});
+        expect(refreshKeycloakSession).not.toHaveBeenCalled();
+    });
+});
+
 describe('jwt callback outside keycloak mode', () => {
     it('never refreshes in local mode', async () => {
-        const config = await loadConfig('local');
+        const config = await loadProxyConfig('local');
 
         const token = await config.callbacks.jwt({
             token: {sub: 'local-1'},
