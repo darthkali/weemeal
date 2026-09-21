@@ -8,7 +8,6 @@ import {resolveRole} from '@/lib/auth/resolveRole';
  * können (id_token_hint).
  */
 export interface KeycloakSessionTokens {
-    accessToken?: string;
     refreshToken?: string;
     idToken?: string;
     // Ablauf des Access-Tokens als Unix-Zeit in Sekunden (wie Auth.js und
@@ -152,10 +151,13 @@ export async function refreshKeycloakSession<T extends KeycloakSessionTokens>(
         return null;
     }
 
+    // Das Access-Token selbst wandert bewusst nicht ins JWT: WeeMeal ruft
+    // keine Keycloak-API damit auf, und das Session-Cookie reist bei jedem
+    // Request mit — jedes gesparte Kilobyte hält es unter den Header-Limits
+    // von Proxy und Browser.
     return {
         ...token,
         role,
-        accessToken: payload.access_token,
         refreshToken:
             typeof payload.refresh_token === 'string' ? payload.refresh_token : token.refreshToken,
         idToken: idToken ?? token.idToken,

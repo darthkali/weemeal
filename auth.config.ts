@@ -77,8 +77,9 @@ export const authConfig = {
 
             // Login: die Keycloak-Tokens ins JWT legen, damit die Session
             // später nachprüfbar (refresh_token) und beendbar (id_token) ist.
+            // Das Access-Token bleibt draußen — es wird nie gebraucht und
+            // bläht nur das Cookie auf, das jeder Request mitschleppt.
             if (account) {
-                token.accessToken = account.access_token;
                 token.refreshToken = account.refresh_token;
                 token.idToken = account.id_token;
                 token.expiresAt = account.expires_at;

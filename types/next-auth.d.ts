@@ -22,8 +22,8 @@ declare module 'next-auth/jwt' {
         authMode: string;
         // Nur im keycloak-Modus gesetzt: die Tokens der Keycloak-Session, an
         // der die WeeMeal-Session hängt (Refresh-Prüfung, RP-initiated
-        // Logout). Ablauf in Unix-Sekunden, wie Auth.js ihn liefert.
-        accessToken?: string;
+        // Logout). Ablauf in Unix-Sekunden, wie Auth.js ihn liefert. Das
+        // Access-Token fehlt hier absichtlich — es wird nie gelesen.
         refreshToken?: string;
         idToken?: string;
         expiresAt?: number;
@@ -37,8 +37,8 @@ declare module '@auth/core/jwt' {
         authMode: string;
         // Nur im keycloak-Modus gesetzt: die Tokens der Keycloak-Session, an
         // der die WeeMeal-Session hängt (Refresh-Prüfung, RP-initiated
-        // Logout). Ablauf in Unix-Sekunden, wie Auth.js ihn liefert.
-        accessToken?: string;
+        // Logout). Ablauf in Unix-Sekunden, wie Auth.js ihn liefert. Das
+        // Access-Token fehlt hier absichtlich — es wird nie gelesen.
         refreshToken?: string;
         idToken?: string;
         expiresAt?: number;

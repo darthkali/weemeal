@@ -221,6 +221,20 @@ Terminate TLS in your proxy, forward `X-Forwarded-Proto` and
 `X-Forwarded-Host`, and set `AUTH_URL` to the public `https://` URL — otherwise
 login redirects and secure cookies point at the wrong host.
 
+In `keycloak` mode the session cookie also carries the refresh and ID token, so
+it is a few kilobytes and Auth.js may split it across several `Set-Cookie`
+headers. nginx buffers response headers in 4–8 KB by default and answers with
+**502 Bad Gateway** (`upstream sent too big header` in its error log) once the
+login callback exceeds that. Give it room:
+
+```nginx
+proxy_buffer_size   16k;
+proxy_buffers     8 16k;
+proxy_busy_buffers_size 32k;
+```
+
+Traefik and Caddy need no such setting.
+
 ## API Endpoints
 
 | Method | Endpoint                        | Description                      |

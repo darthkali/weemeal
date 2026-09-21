@@ -18,7 +18,8 @@ Beides gilt **nur im keycloak-Modus**: im local-Modus gibt es keinen externen Pr
 
 ## Consequences
 
-- Das WeeMeal-Cookie trägt im keycloak-Modus die Keycloak-Tokens. Es ist signiert und verschlüsselt (Auth.js JWE), bleibt aber ein Cookie — `AUTH_SECRET` schützt damit mehr als vorher.
+- Das WeeMeal-Cookie trägt im keycloak-Modus das Refresh- und das ID-Token. Es ist signiert und verschlüsselt (Auth.js JWE), bleibt aber ein Cookie — `AUTH_SECRET` schützt damit mehr als vorher. Das Access-Token liegt bewusst **nicht** darin: WeeMeal ruft keine Keycloak-API damit auf, und das Cookie reist bei jedem Request mit.
+- Das Cookie wächst trotzdem auf einige Kilobyte und wird von Auth.js gegebenenfalls auf mehrere `Set-Cookie`-Header verteilt. Ein Reverse Proxy mit knappen Header-Puffern (nginx: 4–8 KB) beantwortet den Login-Callback dann mit 502 — der README nennt die nötigen `proxy_buffer_size`-Werte.
 - Ein nicht erreichbarer Realm beendet die betroffenen Sessions: der Refresh scheitert, der Nutzer landet auf der Login-Seite. Bewusst so — die Alternative wäre, im Zweifel offen zu bleiben.
 - Die Rollen werden beim Refresh aus dem frischen ID-Token gelesen, wie schon beim Login (siehe README); liefert der Refresh kein ID-Token, muss das Access-Token herhalten.
 - **Rotierende Refresh-Tokens werden nicht unterstützt.** Das neue Refresh-Token landet nur dann dauerhaft im Cookie, wenn Auth.js das JWT im selben Request neu ausstellt — ein `auth()`-Aufruf in einer Server Component kann keine Cookies schreiben. Mit *Revoke Refresh Token* im Realm liefe der nächste Refresh damit gegen ein verbrauchtes Token und der Nutzer flöge grundlos heraus. Die Einstellung muss aus bleiben (Keycloak-Default).

@@ -61,11 +61,12 @@ describe('jwt callback in keycloak mode', () => {
         expect(token).toMatchObject({
             role: 'user',
             authMode: 'keycloak',
-            accessToken: 'access-1',
             refreshToken: 'refresh-1',
             idToken: 'id-1',
             expiresAt: FUTURE,
         });
+        // Das Access-Token selbst gehört nicht ins Cookie.
+        expect(token).not.toHaveProperty('accessToken');
         expect(refreshKeycloakSession).not.toHaveBeenCalled();
     });
 
