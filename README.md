@@ -107,7 +107,6 @@ you pick.
 | `MONGODB_URI`   | yes      | MongoDB connection string.                                          |
 | `IMAGES_DIR`    | no       | Where recipe images are stored. Default `./data/images` — point it at your mounted volume, otherwise the images go with the container. |
 | `PORT`          | no       | Port inside the container. Default `3000`.                          |
-| `ADMIN_SECRET`  | no       | Protects `/api/admin/migrate-images` (a one-off maintenance route). |
 
 ### Authentication
 
@@ -258,7 +257,6 @@ Traefik and Caddy need no such setting.
 | POST   | `/api/images`                   | Upload an image                  |
 | GET    | `/api/images/[id]`              | Serve an image                   |
 | DELETE | `/api/images/[id]`              | Delete an image                  |
-| GET    | `/api/admin/migrate-images`     | Admin: migrate images            |
 
 Every route except `/api/auth/*`, `/api/images/*` and `/api/recipes/bring/*`
 requires a session — unless `AUTH_MODE=none`, where all of them are open.
@@ -275,11 +273,6 @@ Without a session the session check answers first, with `401`.
 | PATCH  | `/api/admin/users/[id]`     | Admin: change role or reset password            |
 | DELETE | `/api/admin/users/[id]`     | Admin: delete a user                            |
 | PATCH  | `/api/account/password`     | Change your own password (session-bound)        |
-
-## Maintenance
-
-`GET /api/admin/migrate-images` migrates existing recipe images to filesystem
-storage. Protect it with the `ADMIN_SECRET` environment variable.
 
 ## License
 
