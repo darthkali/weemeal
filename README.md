@@ -190,6 +190,31 @@ login and even when they hold `weemeal-admin` — that role only raises an
 admitted user to admin. So grant `weemeal-user` to everyone who may use
 WeeMeal, and `weemeal-admin` on top to your admins.
 
+**The WeeMeal session follows the Keycloak session.** Once the access token has
+expired (Keycloak's default is 5 minutes), WeeMeal refreshes it against the
+realm before serving the request. Whatever you change in Keycloak takes effect
+within that window, without the user signing in again:
+
+- ending the session, disabling the user or revoking their refresh token logs
+  them out of WeeMeal — the next request lands on the login page,
+- revoking `weemeal-user` locks them out the same way,
+- granting or revoking `weemeal-admin` changes the role on their session.
+
+The session cookie itself lives at most an hour of inactivity in this mode
+(`local` and `none` keep the 30-day default, where there is nothing to check
+against). If Keycloak is unreachable, the affected session ends at the login
+page rather than erroring out.
+
+Two things to keep in mind when you roll this out: leave the realm's *Revoke
+Refresh Token* switch **off** (its default) — WeeMeal keeps the refresh token in
+the session cookie and cannot always write back a rotated one — and expect
+sessions that predate this version to end at the login page once, since their
+cookie carries no refresh token to check with.
+
+**Abmelden** ends the Keycloak session too (RP-initiated logout against the
+realm's `end_session_endpoint`), so the next login asks for credentials instead
+of silently going through via SSO. This needs no extra client configuration.
+
 ### Behind a reverse proxy
 
 Terminate TLS in your proxy, forward `X-Forwarded-Proto` and

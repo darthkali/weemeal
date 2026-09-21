@@ -124,7 +124,11 @@ _Avoid_: IdP-Provider, AuthProvider
 Eine Aussage im Token, die WeeMeal nach dem Login liest — insbesondere die **Role**. Im keycloak-Modus stammt sie aus den Keycloak-Rollen `weemeal-user` / `weemeal-admin` (Client- oder Realm-Rollen); ohne `weemeal-user` kein Zutritt — auch `weemeal-admin` allein öffnet keine Tür, es hebt nur die Role. Die Auflösung ist eine reine Funktion (`resolveRole`).
 
 **Session**:
-Der angemeldete Zustand eines User nach erfolgreichem Login. Trägt Username, Role und Auth Mode. Ohne Session ist nichts sichtbar (auch keine Recipes) — außer im none-Modus, wo es keine Sessions gibt und alles offen ist.
+Der angemeldete Zustand eines User nach erfolgreichem Login. Trägt Username, Role und Auth Mode. Ohne Session ist nichts sichtbar (auch keine Recipes) — außer im none-Modus, wo es keine Sessions gibt und alles offen ist. Im keycloak-Modus hängt sie an der Session beim Identity Provider: läuft das Access-Token ab, wird gegen Keycloak nachgeprüft (**Refresh-Prüfung**) und dabei die Role neu aufgelöst; trägt Keycloak die Session nicht mehr, endet auch die WeeMeal-Session. Umgekehrt beendet das Abmelden in WeeMeal auch die Keycloak-Session (ADR 0004).
+
+**Refresh-Prüfung**:
+Das Nachfragen beim Identity Provider, ob die Session dort noch trägt — im keycloak-Modus der Tausch des Refresh-Tokens gegen ein frisches Access-Token, sobald das alte abgelaufen ist. Scheitert sie, ist die Session ungültig; der Zeitraum zwischen einer Änderung in Keycloak und ihrer Wirkung in WeeMeal ist damit die Lebensdauer des Access-Tokens. Gibt es im local- und im none-Modus nicht.
+_Avoid_: Session-Validierung, Token-Check (die Erneuerung des Tokens ist das Mittel, das Nachprüfen der Session der Zweck)
 
 **Seed Admin**:
 Der beim Start automatisch angelegte erste Admin im local-Modus, aus Konfiguration. Wird nur erzeugt, wenn noch kein Admin existiert (idempotent) — ein späteres Ändern der Seed-Konfiguration überschreibt also kein bestehendes Passwort. In den Modi keycloak und none existiert kein Seed.

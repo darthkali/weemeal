@@ -1,4 +1,9 @@
 import type {NextAuthConfig} from 'next-auth';
+import {
+    endKeycloakSession,
+    isAccessTokenExpired,
+    refreshKeycloakSession,
+} from '@/lib/auth/keycloakSession';
 
 // Pro Deployment fest gewählter Auth-Modus (ADR 0001, ADR 0003).
 export type AuthMode = 'keycloak' | 'local' | 'none';
@@ -24,6 +29,9 @@ export function isKeycloakAuth(): boolean {
     return AUTH_MODE === 'keycloak';
 }
 
+// Obergrenze der WeeMeal-Session im keycloak-Modus, in Sekunden.
+const KEYCLOAK_SESSION_MAX_AGE = 60 * 60;
+
 // Client-ID des Keycloak-Clients: nötig, um die Client-Rollen im Token der
 // richtigen Anwendung zuzuordnen. Edge-sicher, daher hier statt in auth.ts.
 export const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
@@ -36,7 +44,12 @@ export const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
  */
 export const authConfig = {
     trustHost: true,
-    session: {strategy: 'jwt'},
+    // Im keycloak-Modus hängt die WeeMeal-Session an der Keycloak-Session und
+    // wird bei jedem Request gegen sie geprüft; die Stunde ist eine
+    // zusätzliche Obergrenze (rollend, solange Requests laufen). In den
+    // anderen Modi gibt es nichts nachzuprüfen — dort bleibt der
+    // Auth.js-Default (30 Tage).
+    session: {strategy: 'jwt', ...(isKeycloakAuth() && {maxAge: KEYCLOAK_SESSION_MAX_AGE})},
     pages: {
         signIn: '/login',
     },
@@ -52,12 +65,37 @@ export const authConfig = {
             }
             return Boolean((user as {role?: unknown} | undefined)?.role);
         },
-        async jwt({token, user}) {
+        async jwt({token, user, account}) {
             if (user) {
                 token.role = user.role;
                 token.authMode = AUTH_MODE;
             }
-            return token;
+
+            if (!isKeycloakAuth()) {
+                return token;
+            }
+
+            // Login: die Keycloak-Tokens ins JWT legen, damit die Session
+            // später nachprüfbar (refresh_token) und beendbar (id_token) ist.
+            if (account) {
+                token.accessToken = account.access_token;
+                token.refreshToken = account.refresh_token;
+                token.idToken = account.id_token;
+                token.expiresAt = account.expires_at;
+                return token;
+            }
+
+            // Nur bei abgelaufenem Access-Token refreshen, nicht bei jedem
+            // Request — der Callback läuft auch im edge-Proxy.
+            if (!isAccessTokenExpired(token.expiresAt)) {
+                return token;
+            }
+
+            // `null` verwirft die Session (Auth.js v5): eine in Keycloak
+            // beendete Session, ein deaktivierter User oder ein entzogenes
+            // weemeal-user landen damit sauber auf der Login-Seite, statt den
+            // Request abzuwerfen.
+            return refreshKeycloakSession(token);
         },
         async session({session, token}) {
             if (session.user) {
@@ -66,6 +104,19 @@ export const authConfig = {
             }
             session.authMode = token.authMode ?? AUTH_MODE;
             return session;
+        },
+    },
+    events: {
+        // RP-initiated Logout: „Abmelden" beendet nicht nur das App-Cookie,
+        // sondern auch die Session im Realm — sonst ginge der nächste Login
+        // still per SSO durch (auf geteilten Geräten unerwartet).
+        async signOut(message) {
+            if (!isKeycloakAuth() || !('token' in message)) {
+                return;
+            }
+            // Scheitert der Realm, bleibt es beim lokalen Logout —
+            // endKeycloakSession schluckt den Fehler selbst.
+            await endKeycloakSession(message.token?.idToken);
         },
     },
 } satisfies NextAuthConfig;

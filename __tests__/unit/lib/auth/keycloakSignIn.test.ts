@@ -71,10 +71,18 @@ describe('session carries the role resolved from the claim', () => {
     it('puts the role and the auth mode into the token, then into the session', async () => {
         const config = await loadConfig({AUTH_MODE: 'keycloak'});
 
-        // So reicht Auth.js den vom profile-Mapper gebauten User durch.
+        // So reicht Auth.js den vom profile-Mapper gebauten User durch —
+        // beim Login immer zusammen mit dem Account des Providers.
         const token = await config.callbacks.jwt({
             token: {sub: 'kc-1'},
             user: {id: 'kc-1', name: 'alice', role: 'admin'},
+            account: {
+                provider: 'keycloak',
+                access_token: 'access-1',
+                refresh_token: 'refresh-1',
+                id_token: 'id-1',
+                expires_at: Math.floor(Date.now() / 1000) + 300,
+            },
         } as never);
 
         expect(token).toMatchObject({role: 'admin', authMode: 'keycloak'});

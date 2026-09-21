@@ -20,6 +20,13 @@ declare module 'next-auth/jwt' {
     interface JWT {
         role: UserRole;
         authMode: string;
+        // Nur im keycloak-Modus gesetzt: die Tokens der Keycloak-Session, an
+        // der die WeeMeal-Session hängt (Refresh-Prüfung, RP-initiated
+        // Logout). Ablauf in Unix-Sekunden, wie Auth.js ihn liefert.
+        accessToken?: string;
+        refreshToken?: string;
+        idToken?: string;
+        expiresAt?: number;
     }
 }
 
@@ -28,6 +35,13 @@ declare module '@auth/core/jwt' {
     interface JWT {
         role: UserRole;
         authMode: string;
+        // Nur im keycloak-Modus gesetzt: die Tokens der Keycloak-Session, an
+        // der die WeeMeal-Session hängt (Refresh-Prüfung, RP-initiated
+        // Logout). Ablauf in Unix-Sekunden, wie Auth.js ihn liefert.
+        accessToken?: string;
+        refreshToken?: string;
+        idToken?: string;
+        expiresAt?: number;
     }
 }
 

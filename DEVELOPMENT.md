@@ -165,6 +165,35 @@ docker compose rm -sf keycloak && docker compose up -d keycloak
 Keycloak runs in dev mode with an in-memory database — nothing survives that
 recreate, which is the point.
 
+### Checking that the session follows Keycloak
+
+The WeeMeal session is re-checked against the realm once the access token has
+expired — five minutes with the default realm settings. To watch it happen, log
+in, then end the session in Keycloak from the outside:
+
+```bash
+adm=$(curl -s -X POST http://localhost:8080/realms/master/protocol/openid-connect/token \
+  -d client_id=admin-cli -d grant_type=password -d username=admin -d password=admin \
+  | python3 -c "import json,sys;print(json.load(sys.stdin)['access_token'])")
+uid=$(curl -s -H "Authorization: Bearer $adm" \
+  "http://localhost:8080/admin/realms/weemeal/users?username=kc-user" \
+  | python3 -c "import json,sys;print(json.load(sys.stdin)[0]['id'])")
+curl -s -X POST -H "Authorization: Bearer $adm" \
+  "http://localhost:8080/admin/realms/weemeal/users/$uid/logout"
+```
+
+Within the access token's lifetime the next request lands on `/login`. The same
+goes for disabling the user or revoking `weemeal-user`; granting or revoking
+`weemeal-admin` changes the role on the running session instead. To shorten the
+wait, set the realm's *Access Token Lifespan* (Realm settings → Tokens) to a
+minute.
+
+**Abmelden** in WeeMeal also ends the Keycloak session, so the next login asks
+for the password again instead of going through via SSO. Check with
+`curl -s -H "Authorization: Bearer $adm" \
+  "http://localhost:8080/admin/realms/weemeal/users/$uid/sessions"` — the list
+is empty afterwards.
+
 ## Project Structure
 
 ```
