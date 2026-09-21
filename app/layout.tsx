@@ -11,6 +11,10 @@ import {describeSessionCookies} from '@/lib/auth/sessionDiagnostics';
 export const metadata: Metadata = {
   title: 'WeeMeal - Dein Rezeptbuch',
   description: 'Dein digitales Rezeptbuch mit Einkaufslisten-Integration fuer die Bring! App',
+  icons: {
+    icon: {url: '/favicon.png', type: 'image/png'},
+    apple: '/logo192.png',
+  },
 };
 
 export default async function RootLayout({
