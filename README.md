@@ -200,10 +200,11 @@ within that window, without the user signing in again:
 - revoking `weemeal-user` locks them out the same way,
 - granting or revoking `weemeal-admin` changes the role on their session.
 
-The session cookie itself lives at most an hour of inactivity in this mode
-(`local` and `none` keep the 30-day default, where there is nothing to check
-against). If Keycloak is unreachable, the affected session ends at the login
-page rather than erroring out.
+Only a refusal ends a session. If Keycloak answers that the token no longer
+holds, the next request lands on the login page. If the realm is simply
+unreachable, the session stays and the check repeats a minute later — an
+outage at the identity provider does not lock out people who did nothing
+wrong.
 
 Two things to keep in mind when you roll this out: leave the realm's *Revoke
 Refresh Token* switch **off** (its default) — WeeMeal keeps the refresh token in

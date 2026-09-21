@@ -29,9 +29,6 @@ export function isKeycloakAuth(): boolean {
     return AUTH_MODE === 'keycloak';
 }
 
-// Obergrenze der WeeMeal-Session im keycloak-Modus, in Sekunden.
-const KEYCLOAK_SESSION_MAX_AGE = 60 * 60;
-
 // Client-ID des Keycloak-Clients: nötig, um die Client-Rollen im Token der
 // richtigen Anwendung zuzuordnen. Edge-sicher, daher hier statt in auth.ts.
 export const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
@@ -48,12 +45,11 @@ export const authConfig = {
     // verwirft (defekte Cookies, Konfigurationsfehler) — sonst schweigt es.
     // Kein Dauerbetrieb: die Ausgabe ist gesprächig und nennt Token-Interna.
     debug: process.env.AUTH_DEBUG === 'true',
-    // Im keycloak-Modus hängt die WeeMeal-Session an der Keycloak-Session und
-    // wird bei jedem Request gegen sie geprüft; die Stunde ist eine
-    // zusätzliche Obergrenze (rollend, solange Requests laufen). In den
-    // anderen Modi gibt es nichts nachzuprüfen — dort bleibt der
-    // Auth.js-Default (30 Tage).
-    session: {strategy: 'jwt', ...(isKeycloakAuth() && {maxAge: KEYCLOAK_SESSION_MAX_AGE})},
+    // Die Lebensdauer bleibt in jedem Modus beim Auth.js-Default. Im
+    // keycloak-Modus entscheidet ohnehin die Refresh-Prüfung, wie lange die
+    // Session trägt — eine kürzere Frist bringt dagegen nichts und macht die
+    // Anmeldung nur davon abhängig, dass die Uhren aller Beteiligten stimmen.
+    session: {strategy: 'jwt'},
     pages: {
         signIn: '/login',
     },

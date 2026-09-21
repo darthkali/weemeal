@@ -130,10 +130,12 @@ describe('jwt callback in keycloak mode', () => {
         expect(token).toBeNull();
     });
 
-    it('shortens the session lifetime to the access-token window', async () => {
+    // Die Refresh-Prüfung entscheidet, wie lange die Session trägt — eine
+    // eigene Frist bringt nichts und hängt nur von korrekten Uhren ab.
+    it('leaves the session lifetime at the Auth.js default', async () => {
         const config = await loadConfig('keycloak');
 
-        expect(config.session.maxAge).toBe(60 * 60);
+        expect(config.session.maxAge).toBeUndefined();
     });
 });
 

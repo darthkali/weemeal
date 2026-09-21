@@ -214,7 +214,44 @@ describe('refreshKeycloakSession', () => {
         ).resolves.toBeNull();
     });
 
-    it('drops the session when the token endpoint does not answer in time', async () => {
+    // Ein Realm, der gerade strauchelt, sagt nichts darüber, ob jemand noch
+    // hinein darf — die Session bleibt und wird gleich erneut geprüft.
+    it('keeps the session when the realm answers with a server error', async () => {
+        const fetchImpl = vi
+            .fn()
+            .mockResolvedValueOnce(discovery())
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 503,
+                json: async () => ({}),
+            } as Response);
+
+        const kept = await refreshKeycloakSession(expiredToken, {
+            ...deps(fetchImpl as unknown as typeof fetch),
+            now: 1_000_000,
+        });
+
+        expect(kept).toMatchObject({role: 'user', refreshToken: 'refresh-1'});
+        expect(kept?.expiresAt).toBe(1_060);
+    });
+
+    it('keeps the session when the client configuration is missing', async () => {
+        const fetchImpl = vi.fn();
+
+        const kept = await refreshKeycloakSession(expiredToken, {
+            issuer: ISSUER,
+            clientId: CLIENT_ID,
+            clientSecret: undefined,
+            fetchImpl: fetchImpl as unknown as typeof fetch,
+            now: 1_000_000,
+        });
+
+        expect(kept).toMatchObject({role: 'user'});
+        expect(kept?.expiresAt).toBe(1_060);
+        expect(fetchImpl).not.toHaveBeenCalled();
+    });
+
+    it('keeps the session when the token endpoint does not answer in time', async () => {
         const fetchImpl = vi
             .fn()
             .mockResolvedValueOnce(discovery())
@@ -226,10 +263,11 @@ describe('refreshKeycloakSession', () => {
 
         await expect(
             refreshKeycloakSession(expiredToken, deps(fetchImpl as unknown as typeof fetch))
-        ).resolves.toBeNull();
+        ).resolves.toMatchObject({role: 'user'});
     });
 
-    it('drops the session when Keycloak is unreachable', async () => {
+    // Ein Netzausfall ist keine Aussage über den Zutritt.
+    it('keeps the session when Keycloak is unreachable', async () => {
         const fetchImpl = vi
             .fn()
             .mockResolvedValueOnce(discovery())
@@ -237,7 +275,15 @@ describe('refreshKeycloakSession', () => {
 
         await expect(
             refreshKeycloakSession(expiredToken, deps(fetchImpl as unknown as typeof fetch))
-        ).resolves.toBeNull();
+        ).resolves.toMatchObject({role: 'user'});
+    });
+
+    it('keeps the session when the realm has no discovery document', async () => {
+        const fetchImpl = vi.fn().mockRejectedValueOnce(new Error('connect ECONNREFUSED'));
+
+        await expect(
+            refreshKeycloakSession(expiredToken, deps(fetchImpl as unknown as typeof fetch))
+        ).resolves.toMatchObject({role: 'user'});
     });
 
     it('drops the session without a refresh token', async () => {

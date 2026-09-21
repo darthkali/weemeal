@@ -22,6 +22,10 @@ export interface KeycloakSessionTokens {
     role: UserRole;
 }
 
+// Konnte die Prüfung nicht stattfinden, wird sie kurz darauf erneut versucht,
+// statt bei jedem Request erneut gegen einen toten Realm zu laufen.
+const RETRY_AFTER_SECONDS = 60;
+
 export interface KeycloakSessionDeps {
     issuer?: string;
     clientId?: string;
@@ -93,13 +97,25 @@ interface TokenResponse {
     expires_in?: unknown;
 }
 
+// Die Prüfung konnte nicht stattfinden. Die Session bleibt, was sie ist, und
+// der nächste Versuch kommt bald — ein Ausfall auf dem Weg zu Keycloak ist
+// keine Aussage darüber, ob jemand noch hinein darf.
+function postpone<T extends KeycloakSessionTokens>(token: T, now: number): T {
+    return {...token, expiresAt: Math.floor(now / 1000) + RETRY_AFTER_SECONDS};
+}
+
 /**
  * Tauscht das Refresh-Token gegen ein frisches Access-Token und löst dabei die
  * Role neu auf — Rollenänderungen in Keycloak greifen damit im selben Fenster.
  *
- * `null` heißt: die Keycloak-Session trägt nicht mehr. Session beendet, User
- * deaktiviert, Token widerrufen oder `weemeal-user` entzogen — in allen Fällen
- * verliert die WeeMeal-Session ihre Grundlage und der Aufrufer verwirft sie.
+ * `null` heißt: die Keycloak-Session trägt nicht mehr — sie wurde beendet, der
+ * User deaktiviert, das Token widerrufen oder `weemeal-user` entzogen. Nur
+ * dann verliert die WeeMeal-Session ihre Grundlage.
+ *
+ * Konnte gar nicht gefragt werden — Realm nicht erreichbar, Zeitüberschreitung,
+ * Client-Konfiguration zur Laufzeit nicht verfügbar —, kommt das Token
+ * unverändert zurück und die Prüfung wiederholt sich kurz darauf. Ein Ausfall
+ * darf niemanden aussperren, der nichts falsch gemacht hat.
  */
 export async function refreshKeycloakSession<T extends KeycloakSessionTokens>(
     token: T,
@@ -107,13 +123,22 @@ export async function refreshKeycloakSession<T extends KeycloakSessionTokens>(
 ): Promise<T | null> {
     const {issuer, clientId, clientSecret, fetchImpl, now} = resolveDeps(deps);
 
-    if (!token.refreshToken || !clientId || !clientSecret) {
+    // Ohne Refresh-Token gibt es nichts, womit sich die Session belegen ließe.
+    if (!token.refreshToken) {
         return null;
+    }
+
+    if (!clientId || !clientSecret) {
+        console.warn(
+            '[auth] Keycloak-Refresh nicht möglich: Client-Konfiguration fehlt — ' +
+                'Session bleibt vorerst bestehen.'
+        );
+        return postpone(token, now);
     }
 
     const endpoints = await discoverKeycloakEndpoints(issuer, fetchImpl);
     if (!endpoints) {
-        return null;
+        return postpone(token, now);
     }
 
     let payload: TokenResponse;
@@ -131,19 +156,21 @@ export async function refreshKeycloakSession<T extends KeycloakSessionTokens>(
             signal: AbortSignal.timeout(KEYCLOAK_REQUEST_TIMEOUT_MS),
         });
 
+        // 4xx ist die Antwort auf das Token: es trägt nicht mehr. 5xx ist ein
+        // Problem des Realms und sagt über die Session nichts aus.
         if (!response.ok) {
             console.warn(`[auth] Keycloak-Refresh abgelehnt (HTTP ${response.status})`);
-            return null;
+            return response.status >= 500 ? postpone(token, now) : null;
         }
 
         payload = (await response.json()) as TokenResponse;
     } catch (error) {
         console.warn('[auth] Keycloak-Refresh fehlgeschlagen:', error);
-        return null;
+        return postpone(token, now);
     }
 
     if (typeof payload.access_token !== 'string') {
-        return null;
+        return postpone(token, now);
     }
 
     const idToken = typeof payload.id_token === 'string' ? payload.id_token : undefined;
