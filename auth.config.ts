@@ -20,6 +20,14 @@ export function isLocalAuth(): boolean {
     return AUTH_MODE === 'local';
 }
 
+export function isKeycloakAuth(): boolean {
+    return AUTH_MODE === 'keycloak';
+}
+
+// Client-ID des Keycloak-Clients: nötig, um die Client-Rollen im Token der
+// richtigen Anwendung zuzuordnen. Edge-sicher, daher hier statt in auth.ts.
+export const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
+
 /**
  * Edge-sicherer Teil der Auth.js-Konfiguration: keine DB-, keine
  * Node-Abhängigkeiten. Wird sowohl von der Middleware (nur JWT-Prüfung) als
@@ -34,6 +42,16 @@ export const authConfig = {
     },
     providers: [],
     callbacks: {
+        // Im keycloak-Modus entscheidet allein der Token-Claim über den
+        // Zutritt: ohne aufgelöste Role (weemeal-user/weemeal-admin) kommt
+        // niemand rein (ADR 0001). Die Auflösung selbst passiert im
+        // profile-Mapper des Providers, damit sie an einer Stelle sitzt.
+        async signIn({user}) {
+            if (!isKeycloakAuth()) {
+                return true;
+            }
+            return Boolean((user as {role?: unknown} | undefined)?.role);
+        },
         async jwt({token, user}) {
             if (user) {
                 token.role = user.role;

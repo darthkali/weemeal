@@ -9,13 +9,15 @@ import {faKey, faRightFromBracket, faUsersGear} from '@fortawesome/free-solid-sv
 
 interface NavbarProps {
     username?: string | null;
-    isAdmin?: boolean;
+    // Benutzerverwaltung gibt es nur im local-Modus — im keycloak-Modus
+    // verwaltet Keycloak die User, im none-Modus gibt es keine.
+    canManageUsers?: boolean;
     // Passwort ändern gibt es nur im local-Modus; im keycloak-Modus liegt das
     // Passwort beim Identity Provider.
     canChangePassword?: boolean;
 }
 
-export default function Navbar({username, isAdmin, canChangePassword}: NavbarProps) {
+export default function Navbar({username, canManageUsers, canChangePassword}: NavbarProps) {
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -92,7 +94,7 @@ export default function Navbar({username, isAdmin, canChangePassword}: NavbarPro
                                         </Link>
                                     )}
 
-                                    {isAdmin && (
+                                    {canManageUsers && (
                                         <Link
                                             href="/admin"
                                             role="menuitem"

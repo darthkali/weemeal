@@ -3,7 +3,7 @@ import './globals.css';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
 import {auth} from '@/auth';
-import {isAuthDisabled} from '@/auth.config';
+import {isAuthDisabled, isLocalAuth} from '@/auth.config';
 
 export const metadata: Metadata = {
   title: 'WeeMeal - Dein Rezeptbuch',
@@ -31,7 +31,7 @@ export default async function RootLayout({
         <body className="min-h-screen flex flex-col bg-background">
         <Navbar
             username={session?.user?.name}
-            isAdmin={session?.user?.role === 'admin'}
+            canManageUsers={session?.user?.role === 'admin' && isLocalAuth()}
             canChangePassword={session?.authMode === 'local'}
         />
         <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">

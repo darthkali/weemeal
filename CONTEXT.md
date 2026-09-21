@@ -118,7 +118,7 @@ Die austauschbare Quelle von Authentifizierung und Rollen hinter dem Auth Mode. 
 _Avoid_: IdP-Provider, AuthProvider
 
 **Claim**:
-Eine Aussage im Token, die WeeMeal nach dem Login liest — insbesondere die **Role**. Im keycloak-Modus stammt sie aus den Keycloak-Rollen `weemeal-user` / `weemeal-admin`; ohne `weemeal-user` kein Zutritt.
+Eine Aussage im Token, die WeeMeal nach dem Login liest — insbesondere die **Role**. Im keycloak-Modus stammt sie aus den Keycloak-Rollen `weemeal-user` / `weemeal-admin` (Client- oder Realm-Rollen); ohne `weemeal-user` kein Zutritt — auch `weemeal-admin` allein öffnet keine Tür, es hebt nur die Role. Die Auflösung ist eine reine Funktion (`resolveRole`).
 
 **Session**:
 Der angemeldete Zustand eines User nach erfolgreichem Login. Trägt Username, Role und Auth Mode. Ohne Session ist nichts sichtbar (auch keine Recipes) — außer im none-Modus, wo es keine Sessions gibt und alles offen ist.

@@ -20,6 +20,8 @@ This starts:
 
 - **MongoDB** at `localhost:27017`
 - **Mongo Express** (DB UI) at `http://localhost:8081`
+- **Keycloak** at `http://localhost:8080`, with the `weemeal` realm imported —
+  only needed for `AUTH_MODE=keycloak`, see below
 
 Both are development-only containers; the app itself runs on the host via
 `npm run dev`.
@@ -28,6 +30,9 @@ Both are development-only containers; the app itself runs on the host via
 |---------------|-------------------------|-----------------------|
 | MongoDB       | `localhost:27017`       | weemeal / weemeal_dev |
 | Mongo Express | `http://localhost:8081` | –                     |
+| Keycloak      | `http://localhost:8080` | admin / admin         |
+
+Only MongoDB is required; start it alone with `docker compose up -d mongodb`.
 
 ### 2. Install dependencies
 
@@ -53,6 +58,18 @@ AUTH_SECRET=<openssl rand -base64 32>
 AUTH_URL=http://localhost:3000
 SEED_ADMIN_USER=root
 SEED_ADMIN_PASSWORD=<12-72 chars, upper + lower + digit + special>
+```
+
+To work on the keycloak mode, use the Keycloak that ships with the compose
+file (see [Testing the keycloak mode](#testing-the-keycloak-mode) below):
+
+```bash
+AUTH_MODE=keycloak
+AUTH_SECRET=<openssl rand -base64 32>
+AUTH_URL=http://localhost:3000
+KEYCLOAK_ISSUER=http://localhost:8080/realms/weemeal
+KEYCLOAK_CLIENT_ID=weemeal
+KEYCLOAK_CLIENT_SECRET=weemeal-dev-secret
 ```
 
 The admin seed is idempotent: it only creates the admin while none exists.
@@ -111,6 +128,41 @@ Note that the build copies the project's `.env` into `.next/standalone/`, so
 that file wins over an unset variable. Move it aside to test the default
 (`none`) mode.
 
+## Testing the keycloak mode
+
+`docker-compose up -d` also starts a Keycloak at `http://localhost:8080`
+(admin console: `admin` / `admin`). It imports the realm
+`docker/keycloak/realm-weemeal.json` on first start, which already contains:
+
+- the confidential client `weemeal` with the secret `weemeal-dev-secret`,
+  redirecting to `http://localhost:3000/api/auth/callback/keycloak` (and 3100,
+  for testing the standalone build)
+- the client roles `weemeal-user` and `weemeal-admin`
+- protocol mappers that put both client and realm roles into the **ID token** —
+  Keycloak's defaults only put them into the access token, and `resolveRole`
+  reads the ID token
+- four test users, all with the password `Str0ng!Passw0rd`:
+
+| User            | Roles                          | Expected result       |
+|-----------------|--------------------------------|-----------------------|
+| `kc-admin`      | `weemeal-user`, `weemeal-admin`| signed in as `admin`  |
+| `kc-user`       | `weemeal-user`                 | signed in as `user`   |
+| `kc-admin-only` | `weemeal-admin`                | **refused** — entry hangs on `weemeal-user` |
+| `kc-outsider`   | none                           | **refused**           |
+
+Then start the app with the block above and log in at
+`http://localhost:3000/login`.
+
+The realm is imported only when it does not exist yet, so edits to the JSON
+need a fresh container:
+
+```bash
+docker compose rm -sf keycloak && docker compose up -d keycloak
+```
+
+Keycloak runs in dev mode with an in-memory database — nothing survives that
+recreate, which is the point.
+
 ## Project Structure
 
 ```
@@ -129,14 +181,14 @@ that file wins over an unset variable. Move it aside to test the default
 ├── components/            # React components
 │   ├── account/          # Password change form
 │   ├── admin/            # Admin panel
-│   ├── auth/             # Login form
+│   ├── auth/             # Login form, Keycloak sign-in
 │   ├── navbar/           # Navigation
 │   ├── footer/           # Footer
 │   ├── recipe/           # Recipe-specific components
 │   └── ui/               # Reusable UI components
 ├── lib/                   # Backend utilities
 │   ├── api/              # HTTP error mapping
-│   ├── auth/             # Password policy, guards, admin seed
+│   ├── auth/             # Password policy, guards, admin seed, role mapping
 │   ├── mongodb/          # Database connection + models
 │   ├── images/           # Image storage helpers
 │   └── validations/      # Zod schemas

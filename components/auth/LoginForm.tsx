@@ -3,14 +3,12 @@
 import {useState} from 'react';
 import {signIn} from 'next-auth/react';
 import {useRouter, useSearchParams} from 'next/navigation';
+import {safeCallbackUrl} from '@/lib/auth/safeCallbackUrl';
 
 export default function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    // Nur lokale, relative Ziele zulassen — kein Open Redirect zu externen URLs.
-    const rawCallback = searchParams.get('callbackUrl') || '/';
-    const callbackUrl =
-        rawCallback.startsWith('/') && !rawCallback.startsWith('//') ? rawCallback : '/';
+    const callbackUrl = safeCallbackUrl(searchParams.get('callbackUrl'));
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');

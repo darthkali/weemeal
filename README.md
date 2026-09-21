@@ -145,10 +145,33 @@ password is lost can only be reset by another admin.
 Signed-in users change their own password under **Passwort ändern** in the user
 menu.
 
-**`AUTH_MODE=keycloak` — login against an existing Keycloak** (specified in
-ADR 0001, not implemented yet). Planned variables: `KEYCLOAK_ISSUER`,
-`KEYCLOAK_CLIENT_ID`, `KEYCLOAK_CLIENT_SECRET`, plus `AUTH_SECRET` and
-`AUTH_URL`. Users and roles live in Keycloak; WeeMeal shows no admin panel.
+**`AUTH_MODE=keycloak` — login against an existing Keycloak** (OIDC). Users
+and roles live in Keycloak, so WeeMeal shows no admin panel and no password
+change; the login page only offers a **Mit Keycloak anmelden** button.
+
+| Variable                 | Required       | Description                                                            |
+|--------------------------|----------------|------------------------------------------------------------------------|
+| `KEYCLOAK_ISSUER`        | yes            | Realm issuer URL, e.g. `https://keycloak.example.com/realms/main`.     |
+| `KEYCLOAK_CLIENT_ID`     | yes            | Client ID of the WeeMeal client.                                       |
+| `KEYCLOAK_CLIENT_SECRET` | yes            | Its client secret.                                                     |
+| `AUTH_SECRET`            | yes            | Signs the JWT session cookie. Generate with `openssl rand -base64 32`. |
+| `AUTH_URL`               | behind a proxy | Public base URL (the `https://` one behind nginx/TLS).                 |
+
+**Keycloak setup on your side.** WeeMeal reads roles from the token and grants
+nothing by itself:
+
+1. Create a confidential client for WeeMeal and copy its ID and secret.
+2. Add `<AUTH_URL>/api/auth/callback/keycloak` to the client's **valid redirect
+   URIs**.
+3. Define the client roles **`weemeal-user`** and **`weemeal-admin`** and assign
+   them to your users. Realm roles of the same names work too.
+4. Make sure the roles actually reach the token — the default `roles` client
+   scope maps them into `resource_access` / `realm_access`.
+
+A user without `weemeal-user` is refused entry, even with a valid Keycloak
+login and even when they hold `weemeal-admin` — that role only raises an
+admitted user to admin. So grant `weemeal-user` to everyone who may use
+WeeMeal, and `weemeal-admin` on top to your admins.
 
 ### Behind a reverse proxy
 
@@ -178,7 +201,8 @@ requires a session — unless `AUTH_MODE=none`, where all of them are open.
 
 ### Authentication endpoints (`AUTH_MODE=local`)
 
-Outside the `local` mode these respond `404`.
+Outside the `local` mode these do not exist: a signed-in request gets `404`.
+Without a session the session check answers first, with `401`.
 
 | Method | Endpoint                    | Description                                     |
 |--------|-----------------------------|-------------------------------------------------|

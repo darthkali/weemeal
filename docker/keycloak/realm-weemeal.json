@@ -1,0 +1,159 @@
+{
+  "realm": "weemeal",
+  "enabled": true,
+  "displayName": "WeeMeal (local dev)",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginTheme": "keycloak",
+  "clients": [
+    {
+      "clientId": "weemeal",
+      "name": "WeeMeal",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "weemeal-dev-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3000/api/auth/callback/keycloak",
+        "http://localhost:3100/api/auth/callback/keycloak"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost:3100"
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "protocolMappers": [
+        {
+          "name": "weemeal client roles (id token)",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "usermodel.clientRoleMapping.clientId": "weemeal",
+            "claim.name": "resource_access.${client_id}.roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "realm roles (id token)",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "roles": {
+    "client": {
+      "weemeal": [
+        {
+          "name": "weemeal-user",
+          "description": "May use WeeMeal"
+        },
+        {
+          "name": "weemeal-admin",
+          "description": "May use WeeMeal as an admin"
+        }
+      ]
+    }
+  },
+  "users": [
+    {
+      "username": "kc-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Kim",
+      "lastName": "Admin",
+      "email": "kc-admin@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Str0ng!Passw0rd",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "weemeal": [
+          "weemeal-user",
+          "weemeal-admin"
+        ]
+      }
+    },
+    {
+      "username": "kc-user",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Uma",
+      "lastName": "User",
+      "email": "kc-user@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Str0ng!Passw0rd",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "weemeal": [
+          "weemeal-user"
+        ]
+      }
+    },
+    {
+      "username": "kc-admin-only",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Ada",
+      "lastName": "AdminOnly",
+      "email": "kc-admin-only@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Str0ng!Passw0rd",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "weemeal": [
+          "weemeal-admin"
+        ]
+      }
+    },
+    {
+      "username": "kc-outsider",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Otto",
+      "lastName": "Outsider",
+      "email": "kc-outsider@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Str0ng!Passw0rd",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}
