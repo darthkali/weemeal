@@ -26,7 +26,19 @@ describe('mapKeycloakProfile', () => {
         expect(user.role).toBe('admin');
     });
 
-    it('uses preferred_username as the display name — that is the Username', () => {
+    it('shows the first name when the token carries one', () => {
+        const user = mapKeycloakProfile(
+            profile({
+                given_name: 'Alice',
+                resource_access: {[CLIENT_ID]: {roles: ['weemeal-user']}},
+            }),
+            CLIENT_ID
+        );
+
+        expect(user.name).toBe('Alice');
+    });
+
+    it('falls back to the username when there is no first name', () => {
         const user = mapKeycloakProfile(
             profile({resource_access: {[CLIENT_ID]: {roles: ['weemeal-user']}}}),
             CLIENT_ID
@@ -35,7 +47,19 @@ describe('mapKeycloakProfile', () => {
         expect(user.name).toBe('alice');
     });
 
-    it('falls back to name when the token carries no preferred_username', () => {
+    it('ignores a blank first name', () => {
+        const user = mapKeycloakProfile(
+            profile({
+                given_name: '   ',
+                resource_access: {[CLIENT_ID]: {roles: ['weemeal-user']}},
+            }),
+            CLIENT_ID
+        );
+
+        expect(user.name).toBe('alice');
+    });
+
+    it('falls back to the full name when neither is present', () => {
         const {preferred_username: _ignored, ...withoutUsername} = profile({
             realm_access: {roles: ['weemeal-user']},
         });

@@ -96,7 +96,10 @@ Ein Zugangsberechtigter. Trägt genau eine **Role** und dient allein dem Login �
 _Avoid_: Account, Member, Konto
 
 **Username**:
-Der Login-Bezeichner eines User. Im local-Modus die Identität (Username + Passwort). Im keycloak-Modus der `preferred_username`-Claim.
+Der Login-Bezeichner eines User. Im local-Modus die Identität (Username + Passwort). Im keycloak-Modus der `preferred_username`-Claim. Angezeigt wird er nur, wenn es keinen **Display Name** gibt.
+
+**Display Name**:
+Der Name, mit dem ein User in der Oberfläche begrüßt wird. Im keycloak-Modus der Vorname (`given_name`-Claim), sonst der Username. Reine Anzeige — die Identität hängt an der User-ID, nie am Display Name.
 
 **Role**:
 Die Rolle eines User: `user` oder `admin`. Ein **Admin** ist immer auch `user`. Es kann mehrere Admins geben.

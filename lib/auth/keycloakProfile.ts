@@ -16,6 +16,15 @@ export interface KeycloakUser {
 // — dieser Typ benennt genau diese Lücke, statt sie inline wegzucasten.
 export type AuthJsUser = Omit<KeycloakUser, 'role'> & {role: UserRole};
 
+function firstNonBlank(...values: (string | undefined)[]): string | null {
+    for (const value of values) {
+        if (value && value.trim() !== '') {
+            return value;
+        }
+    }
+    return null;
+}
+
 /**
  * Übersetzt das Keycloak-Profil in den User, den Auth.js weiterreicht. Die
  * Role kommt ausschließlich aus den Token-Claims (ADR 0001) — WeeMeal
@@ -24,6 +33,7 @@ export type AuthJsUser = Omit<KeycloakUser, 'role'> & {role: UserRole};
 export function mapKeycloakProfile(profile: unknown, clientId?: string): KeycloakUser {
     const claims = (typeof profile === 'object' && profile !== null ? profile : {}) as {
         sub?: string;
+        given_name?: string;
         preferred_username?: string;
         name?: string;
         email?: string;
@@ -31,9 +41,10 @@ export function mapKeycloakProfile(profile: unknown, clientId?: string): Keycloa
 
     return {
         id: claims.sub ?? '',
-        // Der Username eines User ist im keycloak-Modus der
-        // preferred_username-Claim (CONTEXT.md).
-        name: claims.preferred_username ?? claims.name ?? null,
+        // Angezeigt wird der Vorname, wenn Keycloak einen liefert — sonst der
+        // Username (im keycloak-Modus der preferred_username-Claim, siehe
+        // CONTEXT.md). Die Identität hängt ohnehin an `id`, nicht am Namen.
+        name: firstNonBlank(claims.given_name, claims.preferred_username, claims.name),
         email: claims.email ?? null,
         role: resolveRole(profile, clientId),
     };
