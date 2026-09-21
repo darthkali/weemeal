@@ -2,8 +2,10 @@ import type {Metadata} from 'next';
 import './globals.css';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
+import {headers} from 'next/headers';
 import {auth} from '@/auth';
 import {isAuthDisabled, isLocalAuth} from '@/auth.config';
+import {describeSessionCookies} from '@/lib/auth/sessionDiagnostics';
 
 export const metadata: Metadata = {
   title: 'WeeMeal - Dein Rezeptbuch',
@@ -17,6 +19,16 @@ export default async function RootLayout({
 }) {
     // Im none-Modus wird Auth.js nicht angefasst — es gibt keine Session.
     const session = isAuthDisabled() ? null : await auth();
+
+    // Bleibt die Navbar leer, obwohl jemand angemeldet ist, verrät erst der
+    // Request, woran es liegt: kam gar kein Cookie an, oder kam eines an, das
+    // nicht trägt? Auth.js schweigt in diesem Fall (siehe AUTH_DEBUG).
+    if (!session && !isAuthDisabled() && process.env.AUTH_DEBUG === 'true') {
+        console.warn(
+            '[auth][diagnose] Seite ohne Session gerendert —',
+            describeSessionCookies((await headers()).get('cookie'))
+        );
+    }
     return (
         <html lang="de">
         <head>
