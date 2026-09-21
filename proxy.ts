@@ -51,9 +51,10 @@ export const config = {
     //  - api/auth        Auth.js-Endpunkte (Login/Callback/Logout)
     //  - api/images      lokale Bilder; next/image holt sie serverseitig ohne Cookie
     //  - api/recipes/bring  öffentlicher Bring-Deeplink (getbring.com ruft ohne Session)
+    //  - api/debug       Diagnose-Sonde; existiert nur mit AUTH_DEBUG
     //  - login           Login-Seite
     //  - Next-Assets & statische Public-Dateien (Bilder etc.)
     matcher: [
-        '/((?!api/auth|api/images|api/recipes/bring|login|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)',
+        '/((?!api/auth|api/images|api/recipes/bring|api/debug|login|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp)$).*)',
     ],
 };
