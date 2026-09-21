@@ -50,6 +50,23 @@ describe('cookie probe', () => {
         expect(cookie.length).toBeGreaterThan(1200);
     });
 
+    // Der Login-Callback antwortet mit einem Redirect und räumt dabei seine
+    // Flow-Cookies ab — die Sonde muss dieselbe Form annehmen können.
+    it('answers as a redirect carrying several cookies at once', async () => {
+        process.env.AUTH_DEBUG = 'true';
+        const {GET} = await loadRoute('true');
+
+        const response = await GET(
+            new Request('https://weemeal.test/api/debug/cookie?size=1200&redirect=1')
+        );
+
+        expect(response.status).toBe(302);
+        expect(response.headers.get('location')).toContain('/login');
+        const cookies = response.headers.getSetCookie();
+        expect(cookies).toHaveLength(3);
+        expect(cookies[0]).toContain('__Secure-authjs.cookie-probe=');
+    });
+
     // Ein Cookie jenseits der Browser-Grenze würde nichts beweisen.
     it('caps the size', async () => {
         process.env.AUTH_DEBUG = 'true';
