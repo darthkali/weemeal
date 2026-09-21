@@ -21,6 +21,9 @@ code instead, see [DEVELOPMENT.md](DEVELOPMENT.md).
 - Section headers for ingredient grouping
 - Portion scaling with localStorage persistence
 - QR code generation for Bring! shopping list integration
+- Share a single recipe with people who are not signed in: a revocable,
+  read-only link (with QR code) — portions and the Bring! export included,
+  notes left out. Only with a login (`local` or `keycloak`)
 - Markdown support for recipe instructions
 - Recipe notes with auto-save
 - Source attribution (book with page, URL, or free text)
@@ -254,12 +257,19 @@ Traefik and Caddy need no such setting.
 | PATCH  | `/api/recipes/[id]/notes`       | Update recipe notes              |
 | PATCH  | `/api/recipes/[id]/source`      | Update recipe source             |
 | GET    | `/api/recipes/bring/[id]`       | Get Schema.org HTML for Bring!   |
+| GET    | `/api/recipes/[id]/share`       | Share token of a recipe, or null |
+| POST   | `/api/recipes/[id]/share`       | Share a recipe (create the link) |
+| DELETE | `/api/recipes/[id]/share`       | Revoke the share link            |
+| GET    | `/api/share/[token]/bring`      | Bring! HTML for a shared recipe  |
 | POST   | `/api/images`                   | Upload an image                  |
 | GET    | `/api/images/[id]`              | Serve an image                   |
 | DELETE | `/api/images/[id]`              | Delete an image                  |
 
-Every route except `/api/auth/*`, `/api/images/*` and `/api/recipes/bring/*`
-requires a session — unless `AUTH_MODE=none`, where all of them are open.
+Every route except `/api/auth/*`, `/api/images/*`, `/api/recipes/bring/*` and
+`/api/share/*` requires a session — unless `AUTH_MODE=none`, where all of them
+are open. The shared recipe page `/share/[token]` and `/api/share/*` need no
+session, the share token is their gate; with `AUTH_MODE=none` they do not exist
+(`404`), just like `/api/recipes/[id]/share`.
 
 ### Authentication endpoints (`AUTH_MODE=local`)
 

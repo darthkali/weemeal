@@ -13,5 +13,5 @@ Widerrufbarkeit ist die treibende Anforderung: ein einmal geleakter Link muss si
 
 - Löschen eines Recipe muss dessen Share Link mitlöschen; sonst zeigt der Token ins Leere (für den Share Recipient ohnehin nicht unterscheidbar von „widerrufen").
 - Die Markierung „geteilt" auf der RecipeCard braucht eine zweite Abfrage (welche Recipe IDs haben einen Share Link).
-- Heute höchstens ein Share Link pro Recipe — als fachliche Regel, nicht als Schema-Zwang. Mehrere Links pro Recipe wären ohne Migration möglich.
+- Heute höchstens ein Share Link pro Recipe, abgesichert durch einen unique-Index auf die Recipe ID. Mehrere Links pro Recipe bräuchten nur diesen Index ohne `unique` — keine Migration der Daten.
 - Der Share Recipient bekommt nie die Recipe ID zu sehen; auch der Bring-Export für ihn läuft über den Share Token, damit ein Widerruf auch diesen Weg schließt.

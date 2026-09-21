@@ -2,6 +2,7 @@ import {notFound} from 'next/navigation';
 import {headers} from 'next/headers';
 import RecipeDetailView from '@/components/recipe/RecipeDetailView';
 import {RecipeResponse} from '@/types/recipe';
+import {isSharingAvailable} from '@/lib/auth/session';
 
 interface RecipePageProps {
     params: Promise<{ id: string }>;
@@ -36,7 +37,7 @@ export default async function RecipePage({params}: RecipePageProps) {
         notFound();
     }
 
-    return <RecipeDetailView recipe={recipe}/>;
+    return <RecipeDetailView recipe={recipe} canShare={isSharingAvailable()}/>;
 }
 
 export async function generateMetadata({params}: RecipePageProps) {

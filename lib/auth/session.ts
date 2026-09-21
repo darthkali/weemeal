@@ -93,3 +93,18 @@ export function localAuthGuard(): NextResponse | null {
     }
     return NextResponse.json({error: 'Not found'}, {status: 404});
 }
+
+/**
+ * Share Links gibt es nur mit Zugangsschutz: in einer Open Instance teilt man
+ * einfach die normale URL. Dort existieren die Share-Endpunkte nicht (404).
+ */
+export function isSharingAvailable(): boolean {
+    return !isAuthDisabled();
+}
+
+export function sharingGuard(): NextResponse | null {
+    if (isSharingAvailable()) {
+        return null;
+    }
+    return NextResponse.json({error: 'Not found'}, {status: 404});
+}

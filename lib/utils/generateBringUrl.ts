@@ -1,17 +1,18 @@
 const BRING_API_BASE = 'https://api.getbring.com/rest/bringrecipes/deeplink';
 
 export interface GenerateBringUrlOptions {
-    recipeId: string;
+    // Pfad des Bring-HTML-Endpunkts: per Recipe ID oder per Share Token.
+    recipePath: string;
     baseUrl: string;
     baseQuantity: number;
     requestedQuantity: number;
 }
 
 export function generateBringUrl(options: GenerateBringUrlOptions): string {
-    const {recipeId, baseUrl, baseQuantity, requestedQuantity} = options;
+    const {recipePath, baseUrl, baseQuantity, requestedQuantity} = options;
 
     // Build the recipe endpoint URL
-    const recipeEndpoint = `${baseUrl}/api/recipes/bring/${recipeId}`;
+    const recipeEndpoint = `${baseUrl}${recipePath}`;
 
     // Build the Bring deeplink URL
     const url = new URL(BRING_API_BASE);
@@ -30,7 +31,7 @@ export function generateBringUrlFromEnv(
 ): string {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     return generateBringUrl({
-        recipeId,
+        recipePath: `/api/recipes/bring/${recipeId}`,
         baseUrl,
         baseQuantity,
         requestedQuantity,

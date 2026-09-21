@@ -4,6 +4,7 @@ import {recipeRepository} from '@/lib/mongodb/repositories/RecipeRepository';
 import {validateRecipeUpdate} from '@/lib/validations/recipeSchema';
 import {deleteImage, extractImageIdFromUrl, isLocalImageUrl} from '@/lib/images/storage';
 import {sessionGuard} from '@/lib/auth/session';
+import {shareLinkRepository} from '@/lib/mongodb/repositories/ShareLinkRepository';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -177,6 +178,9 @@ export async function DELETE(request: NextRequest, {params}: RouteParams) {
                 {status: 500}
             );
         }
+
+        // Ein Share Link überlebt sein Recipe nicht (ADR 0005).
+        await shareLinkRepository.revoke(id);
 
         // Revalidate cache for home page
         revalidatePath('/');

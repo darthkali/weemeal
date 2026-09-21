@@ -4,7 +4,7 @@ import {useMemo} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCarrot, faUsers, faUtensils} from '@fortawesome/free-solid-svg-icons';
+import {faCarrot, faShareNodes, faUsers, faUtensils} from '@fortawesome/free-solid-svg-icons';
 import {RecipeResponse} from '@/types/recipe';
 
 interface RecipeCardProps {
@@ -66,6 +66,15 @@ export default function RecipeCard({recipe, priority = false}: RecipeCardProps) 
                                 />
                             </div>
                         </div>
+                    )}
+
+                    {/* Share Link marker */}
+                    {recipe.shared && (
+                        <span
+                            className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm shadow-sm text-xs font-medium text-text-dark">
+                            <FontAwesomeIcon icon={faShareNodes} className="w-3 h-3 text-primary"/>
+                            Geteilt
+                        </span>
                     )}
 
                     {/* Gradient overlay for text readability */}

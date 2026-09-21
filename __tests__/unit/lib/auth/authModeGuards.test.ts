@@ -67,3 +67,20 @@ describe('localAuthGuard', () => {
         expect(localAuthGuard()?.status).toBe(404);
     });
 });
+
+describe('sharingGuard', () => {
+    it('lets the route run in local mode', async () => {
+        const {sharingGuard} = await loadGuards('local');
+        expect(sharingGuard()).toBeNull();
+    });
+
+    it('lets the route run in keycloak mode', async () => {
+        const {sharingGuard} = await loadGuards('keycloak');
+        expect(sharingGuard()).toBeNull();
+    });
+
+    it('hides the route in an Open Instance', async () => {
+        const {sharingGuard} = await loadGuards('none');
+        expect(sharingGuard()?.status).toBe(404);
+    });
+});

@@ -74,9 +74,14 @@ export interface RecipeResponse extends Omit<Recipe, '_id' | 'createdAt' | 'upda
     tags?: string[];
     notes?: string;
     source?: RecipeSource;
+    // Ob das Recipe gerade einen Share Link hat (nur in der Übersicht gesetzt).
+    shared?: boolean;
     createdAt?: string;
     updatedAt?: string;
 }
+
+// Was ein Share Recipient sieht: keine Recipe ID, keine Notes.
+export type SharedRecipe = Omit<RecipeResponse, '_id' | 'notes' | 'shared' | 'createdAt' | 'updatedAt'>;
 
 // For creating/updating recipes
 export interface RecipeInput {

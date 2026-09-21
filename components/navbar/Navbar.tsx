@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import {useEffect, useRef, useState} from 'react';
+import {usePathname} from 'next/navigation';
 import {signOut} from 'next-auth/react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faKey, faRightFromBracket, faUsersGear} from '@fortawesome/free-solid-svg-icons';
@@ -28,6 +29,9 @@ export default function Navbar({
 }: NavbarProps) {
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+    // Auf der Share-Seite nur das Logo: der Share Recipient soll weder die
+    // übrige App noch die Login-Seite zu sehen bekommen.
+    const isShareView = usePathname()?.startsWith('/share/') ?? false;
 
     // Klick außerhalb schließt das Menü.
     useEffect(() => {
@@ -43,32 +47,37 @@ export default function Navbar({
 
     const initial = username?.trim().charAt(0).toUpperCase() || '?';
 
+    const brand = (
+        <>
+            <div
+                className="w-10 h-10 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
+                <Image
+                    src="/logo192.png"
+                    alt="WeeMeal Logo"
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                />
+            </div>
+            <div className="flex flex-col">
+                <span className="text-xl font-bold text-text-dark tracking-tight">WeeMeal</span>
+                <span className="text-xs text-text-muted -mt-0.5 hidden sm:block">Dein Rezeptbuch</span>
+            </div>
+        </>
+    );
+
     return (
         <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo/Brand */}
-                    <Link
-                        href="/"
-                        className="flex items-center gap-3 group"
-                    >
-                        <div
-                            className="w-10 h-10 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
-                            <Image
-                                src="/logo192.png"
-                                alt="WeeMeal Logo"
-                                width={40}
-                                height={40}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-xl font-bold text-text-dark tracking-tight">WeeMeal</span>
-                            <span className="text-xs text-text-muted -mt-0.5 hidden sm:block">Dein Rezeptbuch</span>
-                        </div>
-                    </Link>
+                    {isShareView ? (
+                        <div className="flex items-center gap-3 group">{brand}</div>
+                    ) : (
+                        <Link href="/" className="flex items-center gap-3 group">{brand}</Link>
+                    )}
 
-                    {username && (
+                    {username && !isShareView && (
                         <div className="relative" ref={menuRef}>
                             <button
                                 type="button"

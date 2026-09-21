@@ -1,7 +1,8 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {recipeRepository} from '@/lib/mongodb/repositories/RecipeRepository';
 import {validateRecipeInput} from '@/lib/validations/recipeSchema';
-import {sessionGuard} from '@/lib/auth/session';
+import {isSharingAvailable, sessionGuard} from '@/lib/auth/session';
+import {shareLinkRepository} from '@/lib/mongodb/repositories/ShareLinkRepository';
 
 // GET /api/recipes - Get all recipes
 export async function GET(request: NextRequest) {
@@ -19,6 +20,10 @@ export async function GET(request: NextRequest) {
             recipes = await recipeRepository.findAll();
         }
 
+        const sharedIds = isSharingAvailable()
+            ? await shareLinkRepository.findSharedRecipeIds()
+            : new Set<string>();
+
         // Transform MongoDB documents to plain objects
         const response = recipes.map((recipe) => ({
             _id: recipe._id.toString(),
@@ -28,6 +33,7 @@ export async function GET(request: NextRequest) {
             ingredientListContent: recipe.ingredientListContent,
             imageUrl: recipe.imageUrl,
             tags: recipe.tags || [],
+            shared: sharedIds.has(recipe._id.toString()),
             createdAt: recipe.createdAt?.toISOString(),
             updatedAt: recipe.updatedAt?.toISOString(),
         }));
