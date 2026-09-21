@@ -24,7 +24,7 @@ export default function Footer() {
                     <div className="flex items-center gap-1.5 text-sm text-text-muted">
                         <span>Gemacht mit</span>
                         <FontAwesomeIcon icon={faHeart} className="w-3.5 h-3.5 text-error"/>
-                        <span>fuer Hobbykoechinnen</span>
+                        <span>fuer Hobbyköch:innen</span>
                     </div>
 
                     {/* Links */}
