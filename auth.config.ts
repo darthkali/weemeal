@@ -63,11 +63,7 @@ export const authConfig = {
             if (!isKeycloakAuth()) {
                 return true;
             }
-            const role = (user as {role?: unknown} | undefined)?.role;
-            if (process.env.AUTH_DEBUG === 'true') {
-                console.warn(`[auth][diagnose] signIn — aufgelöste Role: ${role ?? 'keine'}`);
-            }
-            return Boolean(role);
+            return Boolean((user as {role?: unknown} | undefined)?.role);
         },
         async jwt({token, user, account}) {
             if (user) {
@@ -91,13 +87,6 @@ export const authConfig = {
             if (account) {
                 token.refreshToken = account.refresh_token;
                 token.expiresAt = account.expires_at;
-                if (process.env.AUTH_DEBUG === 'true') {
-                    console.warn(
-                        `[auth][diagnose] Login-Token gebaut — Refresh-Token: ` +
-                            `${token.refreshToken ? `${token.refreshToken.length} Zeichen` : 'keines'}, ` +
-                            `Role: ${token.role ?? 'keine'}`
-                    );
-                }
                 return token;
             }
 

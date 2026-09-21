@@ -229,12 +229,11 @@ Terminate TLS in your proxy, forward `X-Forwarded-Proto` and
 `X-Forwarded-Host`, and set `AUTH_URL` to the public `https://` URL — otherwise
 login redirects and secure cookies point at the wrong host.
 
-In `keycloak` mode the session cookie also carries the refresh token, so it is
-larger than a plain login cookie. nginx buffers response headers in 4–8 KB by
-default and answers the login callback with **502 Bad Gateway** (`upstream sent
-too big header` in its error log) once they exceed that — or drops the cookie
-silently, which leaves you signed in at Keycloak but without a session in
-WeeMeal. Give it room:
+In `keycloak` mode the login callback answers with about 2 KB of headers — the
+session cookie carries only the refresh token, so it does not grow with the
+roles or groups in your realm. nginx's default buffers hold that. Should nginx
+still answer the login with **502 Bad Gateway** (`upstream sent too big header`
+in its error log), give it room:
 
 ```nginx
 proxy_buffer_size   16k;
