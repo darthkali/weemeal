@@ -63,7 +63,7 @@ describe('jwt callback in keycloak mode', () => {
         const config = await loadConfig('keycloak');
 
         const token = await config.callbacks.jwt({
-            token: {sub: 'kc-1'},
+            token: {sub: 'kc-1', email: 'alice@example.com', picture: 'https://…/a.png'},
             user: {id: 'kc-1', name: 'alice', role: 'user'},
             account,
         } as never);
@@ -74,9 +74,12 @@ describe('jwt callback in keycloak mode', () => {
             refreshToken: 'refresh-1',
             expiresAt: FUTURE,
         });
-        // Weder Access- noch ID-Token gehören ins Cookie.
+        // Weder Access- noch ID-Token gehören ins Cookie, und auch nichts,
+        // was die Anwendung nie liest.
         expect(token).not.toHaveProperty('accessToken');
         expect(token).not.toHaveProperty('idToken');
+        expect(token).not.toHaveProperty('email');
+        expect(token).not.toHaveProperty('picture');
         expect(refreshKeycloakSession).not.toHaveBeenCalled();
     });
 

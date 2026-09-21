@@ -79,6 +79,11 @@ export const authConfig = {
                 return token;
             }
 
+            // Was niemand liest, muss auch nicht bei jedem Request mitreisen:
+            // angezeigt wird der Name, entschieden wird über Role und `sub`.
+            delete token.email;
+            delete token.picture;
+
             // Login: das Refresh-Token ins JWT legen — damit ist die Session
             // nachprüfbar und beendbar. Access- und ID-Token bleiben draußen:
             // sie werden nie gebraucht und blähen das Cookie auf, das jeder
