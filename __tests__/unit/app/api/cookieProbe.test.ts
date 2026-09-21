@@ -45,6 +45,9 @@ describe('cookie probe', () => {
         const cookie = response.headers.get('set-cookie') ?? '';
 
         expect(response.status).toBe(200);
+        // Die Sonde sagt auch, welche Adresse der Container sieht — daran
+        // hängen alle URLs, die Next und Auth.js selbst bauen.
+        expect(await response.json()).toMatchObject({url: expect.any(String)});
         expect(cookie).toContain('__Secure-authjs.cookie-probe=');
         expect(cookie).toContain('Secure');
         expect(cookie.length).toBeGreaterThan(1200);
@@ -76,6 +79,6 @@ describe('cookie probe', () => {
             new Request('https://weemeal.test/api/debug/cookie?size=999999')
         );
 
-        expect(await response.json()).toEqual({size: 8000});
+        expect(await response.json()).toMatchObject({size: 8000});
     });
 });

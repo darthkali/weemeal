@@ -22,9 +22,20 @@ export async function GET(request: Request): Promise<NextResponse> {
     const size = Number.isFinite(requested) ? Math.min(Math.max(requested, 1), 8000) : 1200;
     const asRedirect = url.searchParams.get('redirect') === '1';
 
+    // Was der Container vom Request sieht: daran hängt jede URL, die Next und
+    // Auth.js selbst bauen — Redirects, Callback-Ziele, Cookie-Kontext.
+    const seen = {
+        size,
+        url: request.url,
+        host: request.headers.get('host'),
+        forwardedHost: request.headers.get('x-forwarded-host'),
+        forwardedProto: request.headers.get('x-forwarded-proto'),
+        authUrl: process.env.AUTH_URL ?? null,
+    };
+
     const response = asRedirect
         ? NextResponse.redirect(new URL('/login', url), 302)
-        : NextResponse.json({size});
+        : NextResponse.json(seen);
 
     response.cookies.set({
         // Derselbe Zuschnitt wie beim Session-Cookie: nur so sagt die Sonde
