@@ -24,12 +24,16 @@ export default async function RootLayout({
     // Request, woran es liegt: kam gar kein Cookie an, oder kam eines an, das
     // nicht trägt? Auth.js schweigt in diesem Fall (siehe AUTH_DEBUG). Die
     // Zeile kommt bei jedem Render — ihr Ausbleiben ist selbst eine Aussage:
-    // dann läuft nicht der Code, den man gerade untersucht.
+    // dann läuft nicht der Code, den man gerade untersucht. Sie steht im Log
+    // und im HTML, weil beim Debuggen einer Installation mal das eine und mal
+    // das andere zur Hand ist.
+    let diagnosis: string | null = null;
     if (!isAuthDisabled() && process.env.AUTH_DEBUG === 'true') {
-        console.warn(
-            `[auth][diagnose] Render mit Session: ${session?.user?.name ? 'ja' : 'nein'} —`,
-            describeSessionCookies((await headers()).get('cookie'))
-        );
+        diagnosis =
+            `v${process.env.NEXT_PUBLIC_APP_VERSION ?? '?'} · ` +
+            `Session: ${session?.user?.name ? 'ja' : 'nein'} · ` +
+            describeSessionCookies((await headers()).get('cookie'));
+        console.warn('[auth][diagnose]', diagnosis);
     }
     return (
         <html lang="de">
@@ -43,6 +47,7 @@ export default async function RootLayout({
           />
         </head>
         <body className="min-h-screen flex flex-col bg-background">
+        {diagnosis && <div hidden data-auth-diagnose={diagnosis}/>}
         <Navbar
             username={session?.user?.name}
             isAdmin={session?.user?.role === 'admin'}
