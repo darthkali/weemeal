@@ -39,7 +39,7 @@ services:
   # are ready to use. Dev mode, in-memory database — nothing persists, which
   # is deliberate: restart to get a clean realm back.
   keycloak:
-    image: quay.io/keycloak/keycloak:26.4
+    image: quay.io/keycloak/keycloak:26.7
     container_name: weemeal-keycloak
     restart: unless-stopped
     command: start-dev --import-realm
