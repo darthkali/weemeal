@@ -1,13 +1,13 @@
 # WeeMeal
 
-WeeMeal ist eine Rezeptverwaltung. Fachlich zentrales Aggregat ist das **Recipe**; alles daran ist eingebettet, ein Value Object oder ein reines UI-/Laufzeit-Konzept. Daneben existiert **User** als zweites Konzept — rein als Zugangs-Gate, nicht mit Recipes verknüpft. Wo der User lebt, hängt vom **Auth Mode** ab; im Modus `none` existiert er gar nicht.
+WeeMeal ist eine Rezeptverwaltung. Fachlich zentrales Aggregat ist das **Recipe**; alles daran ist eingebettet, ein Value Object oder ein reines UI-/Laufzeit-Konzept. Daneben steht der **Share Link** als eigenes Aggregat, das auf ein Recipe verweist (siehe ADR 0005). Außerdem existiert **User** — rein als Zugangs-Gate, nicht mit Recipes verknüpft. Wo der User lebt, hängt vom **Auth Mode** ab; im Modus `none` existiert er gar nicht.
 
 ## Language
 
 ### Recipe
 
 **Recipe**:
-Ein Rezept. Das einzige persistierte Aggregat der Anwendung. Bündelt Name, Zutaten, Zubereitung, Portionsangabe, Bild, Tags, Notizen und Herkunft.
+Ein Rezept. Das zentrale persistierte Aggregat der Anwendung. Bündelt Name, Zutaten, Zubereitung, Portionsangabe, Bild, Tags, Notizen und Herkunft.
 
 **Recipe ID**:
 Eindeutiger Bezeichner eines Recipe, in der Domänensprache immer `id` und zugegriffen über `recipe.id`. Underscores gehören nicht in die Domänensprache.
@@ -77,6 +77,19 @@ Eine Source vom Typ `book`: strukturiert als Buchtitel und Seitenzahl.
 **Text Source**:
 Eine Source als beliebiger Freitext (z.B. "Rezept meiner Oma", "Verpackung der Milchreis-Packung"). Für Herkünfte, die weder Link noch strukturiertes Buch sind.
 
+### Sharing
+
+**Share Link**:
+Ein widerrufbarer Lesezugriff auf genau ein Recipe, ohne Session. Zeigt immer den aktuellen Stand des Recipe (kein Snapshot) — alles außer den Notes. Höchstens ein Share Link pro Recipe; jeder User darf ihn erzeugen und widerrufen. Kein Ablauf: er gilt, bis er widerrufen oder das Recipe gelöscht wird. Erneutes Teilen nach einem Widerruf erzeugt einen neuen Share Token, der alte bleibt ungültig. Gibt es nur mit Zugangsschutz — in einer Open Instance teilt man einfach die normale URL.
+_Avoid_: Public Link, Freigabe, Share (allein, ohne „Link")
+
+**Share Token**:
+Der unratbare Bestandteil der URL, der einen Share Link identifiziert. Der Share Recipient kennt nur ihn, nie die Recipe ID.
+
+**Share Recipient**:
+Wer einen Share Link ohne Session öffnet. Sieht genau dieses eine Recipe, kann Selected Portions wählen und nach Bring exportieren — aber nichts bearbeiten, löschen oder Notes lesen und schreiben. Ein unbekannter, widerrufener oder auf ein gelöschtes Recipe zeigender Share Token sieht für ihn gleich aus: „nicht (mehr) verfügbar".
+_Avoid_: Guest, anonymous user, public user
+
 ### Integrations
 
 **Bring**:
@@ -114,7 +127,7 @@ _Avoid_: auth strategy, login type
 
 **Open Instance**:
 Eine Instanz im Auth Mode `none` — der Default, wenn `AUTH_MODE` nicht gesetzt ist: kein Login, keine Session, keine User, kein Admin-Panel — jeder Besucher sieht und bearbeitet alle Recipes. Gedacht für ein privates Netz oder eine Instanz, die bereits davor abgesichert ist (z.B. VPN, Reverse Proxy mit eigener Auth). Der Modus schaltet das Auth-Modul vollständig ab: Login-Seite, Benutzerverwaltung und „Passwort ändern" existieren nicht, und Auth.js wird nicht einmal initialisiert (siehe ADR 0003).
-_Avoid_: public mode (verwechselbar mit dem geplanten öffentlichen Share-Link), anonymous user, guest
+_Avoid_: public mode (verwechselbar mit dem Share Link), anonymous user, guest
 
 **Identity Provider**:
 Die austauschbare Quelle von Authentifizierung und Rollen hinter dem Auth Mode. Im keycloak-Modus ist es Keycloak, im local-Modus WeeMeal selbst. Beide erfüllen denselben Vertrag (Login prüfen, Role liefern; User-Verwaltung nur local). Im none-Modus gibt es keinen.
