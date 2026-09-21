@@ -31,6 +31,7 @@ export default async function RootLayout({
         <body className="min-h-screen flex flex-col bg-background">
         <Navbar
             username={session?.user?.name}
+            isAdmin={session?.user?.role === 'admin'}
             canManageUsers={session?.user?.role === 'admin' && isLocalAuth()}
             canChangePassword={session?.authMode === 'local'}
         />

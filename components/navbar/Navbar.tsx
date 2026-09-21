@@ -9,6 +9,9 @@ import {faKey, faRightFromBracket, faUsersGear} from '@fortawesome/free-solid-sv
 
 interface NavbarProps {
     username?: string | null;
+    // Die Role als solche — getrennt von canManageUsers: im keycloak-Modus ist
+    // man Admin, ohne dass es ein Nutzerverwaltungs-Panel gäbe.
+    isAdmin?: boolean;
     // Benutzerverwaltung gibt es nur im local-Modus — im keycloak-Modus
     // verwaltet Keycloak die User, im none-Modus gibt es keine.
     canManageUsers?: boolean;
@@ -17,7 +20,12 @@ interface NavbarProps {
     canChangePassword?: boolean;
 }
 
-export default function Navbar({username, canManageUsers, canChangePassword}: NavbarProps) {
+export default function Navbar({
+    username,
+    isAdmin,
+    canManageUsers,
+    canChangePassword,
+}: NavbarProps) {
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -78,8 +86,11 @@ export default function Navbar({username, canManageUsers, canChangePassword}: Na
                                     role="menu"
                                     className="absolute right-0 mt-2 w-56 rounded-2xl bg-white shadow-lg shadow-black/10 border border-gray-100 py-2"
                                 >
-                                    <div className="px-4 py-2 border-b border-gray-100">
+                                    <div className="px-4 py-2 border-b border-gray-100 flex items-center gap-2">
                                         <p className="text-sm font-medium text-text-dark truncate">{username}</p>
+                                        {isAdmin && (
+                                            <span className="badge badge-primary shrink-0">Admin</span>
+                                        )}
                                     </div>
 
                                     {canChangePassword && (
