@@ -1,5 +1,8 @@
 import type {UserRole} from '@/lib/mongodb/models/User';
-import {discoverKeycloakEndpoints} from '@/lib/auth/keycloakDiscovery';
+import {
+    discoverKeycloakEndpoints,
+    KEYCLOAK_REQUEST_TIMEOUT_MS,
+} from '@/lib/auth/keycloakDiscovery';
 import {resolveRole} from '@/lib/auth/resolveRole';
 
 /**
@@ -122,6 +125,7 @@ export async function refreshKeycloakSession<T extends KeycloakSessionTokens>(
                 client_secret: clientSecret,
             }).toString(),
             cache: 'no-store',
+            signal: AbortSignal.timeout(KEYCLOAK_REQUEST_TIMEOUT_MS),
         });
 
         if (!response.ok) {
@@ -198,7 +202,10 @@ export async function endKeycloakSession(
     }
 
     try {
-        const response = await fetchImpl(url.toString(), {cache: 'no-store'});
+        const response = await fetchImpl(url.toString(), {
+            cache: 'no-store',
+            signal: AbortSignal.timeout(KEYCLOAK_REQUEST_TIMEOUT_MS),
+        });
         // Weist Keycloak den id_token_hint zurück, antwortet es mit einer
         // Bestätigungsseite statt zu beenden — dann bliebe die Session stehen,
         // ohne dass jemand es merkt.

@@ -35,7 +35,8 @@ describe('discoverKeycloakEndpoints', () => {
 
         expect(fetchImpl).toHaveBeenCalledWith(
             `${ISSUER}/.well-known/openid-configuration`,
-            expect.anything()
+            // Ein hängender Keycloak darf den Request nicht aufhalten.
+            expect.objectContaining({signal: expect.any(AbortSignal)})
         );
         expect(endpoints).toEqual({
             tokenEndpoint: `${ISSUER}/protocol/openid-connect/token`,

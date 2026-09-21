@@ -6,6 +6,12 @@ export interface KeycloakEndpoints {
     endSessionEndpoint: string | null;
 }
 
+// Keycloak darf einen Request nicht aufhalten: der Refresh läuft im
+// Request-Pfad (auch im edge-Proxy), und ein hängender Aufruf würde dort bis
+// zum Gateway-Timeout stehen. Nach Ablauf gilt die Session als nicht mehr
+// nachweisbar — das führt zum Login, nicht zu einem 502.
+export const KEYCLOAK_REQUEST_TIMEOUT_MS = 5_000;
+
 // Das Discovery-Dokument ändert sich praktisch nie, der Refresh läuft aber im
 // Request-Pfad (auch im edge-Proxy). Einmal pro Issuer und Instanz holen.
 const cache = new Map<string, Promise<KeycloakEndpoints | null>>();
@@ -26,6 +32,7 @@ async function fetchEndpoints(
         // Der Cache liegt hier im Modul; die Fetch-Schicht soll nichts eigenes
         // vorhalten, damit ein Realm-Wechsel nach einem Neustart greift.
         cache: 'no-store',
+        signal: AbortSignal.timeout(KEYCLOAK_REQUEST_TIMEOUT_MS),
     });
 
     if (!response.ok) {

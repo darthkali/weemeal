@@ -115,6 +115,8 @@ describe('refreshKeycloakSession', () => {
 
         const [url, init] = (fetchImpl.mock.calls[1] ?? []) as [string, RequestInit];
         expect(url).toBe(TOKEN_ENDPOINT);
+        // Ein hängender Keycloak darf den Request nicht aufhalten.
+        expect(init.signal).toBeInstanceOf(AbortSignal);
         const body = new URLSearchParams(init.body as string);
         expect(Object.fromEntries(body)).toEqual({
             grant_type: 'refresh_token',
@@ -205,6 +207,21 @@ describe('refreshKeycloakSession', () => {
             .fn()
             .mockResolvedValueOnce(discovery())
             .mockResolvedValueOnce(jsonResponse({error: 'invalid_grant'}, false));
+
+        await expect(
+            refreshKeycloakSession(expiredToken, deps(fetchImpl as unknown as typeof fetch))
+        ).resolves.toBeNull();
+    });
+
+    it('drops the session when the token endpoint does not answer in time', async () => {
+        const fetchImpl = vi
+            .fn()
+            .mockResolvedValueOnce(discovery())
+            .mockRejectedValueOnce(
+                Object.assign(new Error('The operation was aborted due to timeout'), {
+                    name: 'TimeoutError',
+                })
+            );
 
         await expect(
             refreshKeycloakSession(expiredToken, deps(fetchImpl as unknown as typeof fetch))
