@@ -139,8 +139,10 @@ that file wins over an unset variable. Move it aside to test the default
   for testing the standalone build)
 - the client roles `weemeal-user` and `weemeal-admin`
 - protocol mappers that put both client and realm roles into the **ID token** —
-  Keycloak's defaults only put them into the access token, and `resolveRole`
-  reads the ID token
+  Keycloak's built-in mappers only fill the access token, and `resolveRole`
+  reads the ID token. This realm is the working reference for that mapper
+  config; the [README](README.md#authentication) has the click path for a real
+  instance
 - four test users, all with the password `Str0ng!Passw0rd`:
 
 | User            | Roles                          | Expected result       |

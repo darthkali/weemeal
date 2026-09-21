@@ -160,13 +160,30 @@ change; the login page only offers a **Mit Keycloak anmelden** button.
 **Keycloak setup on your side.** WeeMeal reads roles from the token and grants
 nothing by itself:
 
-1. Create a confidential client for WeeMeal and copy its ID and secret.
-2. Add `<AUTH_URL>/api/auth/callback/keycloak` to the client's **valid redirect
-   URIs**.
-3. Define the client roles **`weemeal-user`** and **`weemeal-admin`** and assign
-   them to your users. Realm roles of the same names work too.
-4. Make sure the roles actually reach the token — the default `roles` client
-   scope maps them into `resource_access` / `realm_access`.
+1. **Create the client.** Type *OpenID Connect*, a client ID of your choice
+   (it goes into `KEYCLOAK_CLIENT_ID`), **Client authentication: On**
+   (confidential) and **Standard flow** enabled. Copy the secret from the
+   *Credentials* tab into `KEYCLOAK_CLIENT_SECRET`.
+2. **Set the redirect URI.** Add `<AUTH_URL>/api/auth/callback/keycloak` to the
+   client's *Valid redirect URIs*, e.g.
+   `https://weemeal.example.com/api/auth/callback/keycloak`.
+3. **Define and assign the roles.** Create the client roles **`weemeal-user`**
+   and **`weemeal-admin`** on that client and assign them to your users. Realm
+   roles of the same names work too.
+4. **Put the roles into the ID token.** This step is easy to miss: WeeMeal
+   reads the ID token, but Keycloak's built-in role mappers only fill the
+   *access* token, so without this nobody gets in. On the client, go to
+   *Client scopes → \<your client\>-dedicated → Add mapper → By configuration →
+   User Client Role* and set:
+   - *Multivalued*: On
+   - *Token Claim Name*: `resource_access.${client_id}.roles`
+   - *Client ID*: your client
+   - *Add to ID token*: **On**
+
+   If you assign realm roles instead, add a *User Realm Role* mapper with the
+   claim name `realm_access.roles` the same way. Alternatively you can switch
+   *Add to ID token* on for the mappers in the shared `roles` client scope —
+   but that changes the tokens of every client in the realm.
 
 A user without `weemeal-user` is refused entry, even with a valid Keycloak
 login and even when they hold `weemeal-admin` — that role only raises an
