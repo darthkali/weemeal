@@ -3,6 +3,7 @@ import './globals.css';
 import Navbar from '@/components/navbar/Navbar';
 import Footer from '@/components/footer/Footer';
 import {headers} from 'next/headers';
+import {connection} from 'next/server';
 import {auth} from '@/auth';
 import {isAuthDisabled, isLocalAuth} from '@/auth.config';
 import {describeSessionCookies} from '@/lib/auth/sessionDiagnostics';
@@ -17,6 +18,13 @@ export default async function RootLayout({
                                    }: {
     children: React.ReactNode;
 }) {
+    // Der Auth-Modus ist eine Laufzeit-Entscheidung (ADR 0003). Ohne diese
+    // Zeile fasst das Layout im none-Modus nichts Request-Abhängiges an — und
+    // ein Build ohne AUTH_MODE (wie im Docker-Image) rendert Seiten wie `/`
+    // dann einmalig statisch vor: ohne Session, auch wenn der Container
+    // später mit AUTH_MODE=keycloak läuft. Die Navbar bliebe dauerhaft leer.
+    await connection();
+
     // Im none-Modus wird Auth.js nicht angefasst — es gibt keine Session.
     const session = isAuthDisabled() ? null : await auth();
 
