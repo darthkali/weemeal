@@ -56,7 +56,6 @@ const expiredToken = {
     role: 'user' as const,
     authMode: 'keycloak',
     refreshToken: 'refresh-1',
-    idToken: 'id-1',
     expiresAt: 1_000,
 };
 
@@ -109,9 +108,11 @@ describe('refreshKeycloakSession', () => {
             role: 'user',
             authMode: 'keycloak',
             refreshToken: 'refresh-2',
-            idToken: freshIdToken,
             expiresAt: 1_300,
         });
+        // Das ID-Token wird für die Role gelesen, aber nicht aufgehoben: es
+        // gehört nicht in ein Cookie, das jeder Request mitschleppt.
+        expect(refreshed).not.toHaveProperty('idToken');
 
         const [url, init] = (fetchImpl.mock.calls[1] ?? []) as [string, RequestInit];
         expect(url).toBe(TOKEN_ENDPOINT);
@@ -277,33 +278,37 @@ describe('refreshKeycloakSession without expires_in', () => {
 });
 
 describe('endKeycloakSession', () => {
-    it('calls the end-session endpoint with the id token as a hint', async () => {
-        const fetchImpl = vi.fn().mockResolvedValueOnce(discovery()).mockResolvedValueOnce(
-            jsonResponse({})
-        );
+    it('posts the refresh token and the client credentials to the end-session endpoint', async () => {
+        const fetchImpl = vi
+            .fn()
+            .mockResolvedValueOnce(discovery())
+            .mockResolvedValueOnce(jsonResponse({}));
 
-        await endKeycloakSession('id-1', deps(fetchImpl as unknown as typeof fetch));
+        await endKeycloakSession('refresh-1', deps(fetchImpl as unknown as typeof fetch));
 
-        const [url] = (fetchImpl.mock.calls[1] ?? []) as [string];
-        const called = new URL(url);
-        expect(called.origin + called.pathname).toBe(END_SESSION_ENDPOINT);
-        expect(called.searchParams.get('id_token_hint')).toBe('id-1');
-        expect(called.searchParams.get('client_id')).toBe(CLIENT_ID);
+        const [url, init] = (fetchImpl.mock.calls[1] ?? []) as [string, RequestInit];
+        expect(url).toBe(END_SESSION_ENDPOINT);
+        expect(init.method).toBe('POST');
+        expect(Object.fromEntries(new URLSearchParams(init.body as string))).toEqual({
+            client_id: CLIENT_ID,
+            client_secret: CLIENT_SECRET,
+            refresh_token: 'refresh-1',
+        });
     });
 
-    it('warns when Keycloak refuses the id token hint', async () => {
+    it('warns when Keycloak refuses the logout', async () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
         const fetchImpl = vi
             .fn()
             .mockResolvedValueOnce(discovery())
             .mockResolvedValueOnce(jsonResponse({}, false));
 
-        await endKeycloakSession('id-1', deps(fetchImpl as unknown as typeof fetch));
+        await endKeycloakSession('refresh-1', deps(fetchImpl as unknown as typeof fetch));
 
         expect(warn).toHaveBeenCalledWith(expect.stringContaining('Keycloak-Logout abgelehnt'));
     });
 
-    it('does nothing without an id token', async () => {
+    it('does nothing without a refresh token', async () => {
         const fetchImpl = vi.fn();
 
         await endKeycloakSession(undefined, deps(fetchImpl as unknown as typeof fetch));
@@ -320,7 +325,7 @@ describe('endKeycloakSession', () => {
             .mockRejectedValueOnce(new Error('connect ECONNREFUSED'));
 
         await expect(
-            endKeycloakSession('id-1', deps(fetchImpl as unknown as typeof fetch))
+            endKeycloakSession('refresh-1', deps(fetchImpl as unknown as typeof fetch))
         ).resolves.toBeUndefined();
     });
 
@@ -330,7 +335,7 @@ describe('endKeycloakSession', () => {
             .mockResolvedValueOnce(jsonResponse({token_endpoint: TOKEN_ENDPOINT}));
 
         await expect(
-            endKeycloakSession('id-1', deps(fetchImpl as unknown as typeof fetch))
+            endKeycloakSession('refresh-1', deps(fetchImpl as unknown as typeof fetch))
         ).resolves.toBeUndefined();
         expect(fetchImpl).toHaveBeenCalledTimes(1);
     });

@@ -20,12 +20,12 @@ declare module 'next-auth/jwt' {
     interface JWT {
         role: UserRole;
         authMode: string;
-        // Nur im keycloak-Modus gesetzt: die Tokens der Keycloak-Session, an
-        // der die WeeMeal-Session hängt (Refresh-Prüfung, RP-initiated
-        // Logout). Ablauf in Unix-Sekunden, wie Auth.js ihn liefert. Das
-        // Access-Token fehlt hier absichtlich — es wird nie gelesen.
+        // Nur im keycloak-Modus gesetzt: das Refresh-Token der Session, an der
+        // die WeeMeal-Session hängt (Refresh-Prüfung, RP-initiated Logout),
+        // und der Ablauf des Access-Tokens in Unix-Sekunden. Access- und
+        // ID-Token fehlen hier absichtlich — sie würden das Cookie nur
+        // aufblähen, das bei jedem Request mitreist.
         refreshToken?: string;
-        idToken?: string;
         expiresAt?: number;
     }
 }
@@ -35,12 +35,12 @@ declare module '@auth/core/jwt' {
     interface JWT {
         role: UserRole;
         authMode: string;
-        // Nur im keycloak-Modus gesetzt: die Tokens der Keycloak-Session, an
-        // der die WeeMeal-Session hängt (Refresh-Prüfung, RP-initiated
-        // Logout). Ablauf in Unix-Sekunden, wie Auth.js ihn liefert. Das
-        // Access-Token fehlt hier absichtlich — es wird nie gelesen.
+        // Nur im keycloak-Modus gesetzt: das Refresh-Token der Session, an der
+        // die WeeMeal-Session hängt (Refresh-Prüfung, RP-initiated Logout),
+        // und der Ablauf des Access-Tokens in Unix-Sekunden. Access- und
+        // ID-Token fehlen hier absichtlich — sie würden das Cookie nur
+        // aufblähen, das bei jedem Request mitreist.
         refreshToken?: string;
-        idToken?: string;
         expiresAt?: number;
     }
 }

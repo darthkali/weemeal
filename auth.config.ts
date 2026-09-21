@@ -79,13 +79,12 @@ export const authConfig = {
                 return token;
             }
 
-            // Login: die Keycloak-Tokens ins JWT legen, damit die Session
-            // später nachprüfbar (refresh_token) und beendbar (id_token) ist.
-            // Das Access-Token bleibt draußen — es wird nie gebraucht und
-            // bläht nur das Cookie auf, das jeder Request mitschleppt.
+            // Login: das Refresh-Token ins JWT legen — damit ist die Session
+            // nachprüfbar und beendbar. Access- und ID-Token bleiben draußen:
+            // sie werden nie gebraucht und blähen das Cookie auf, das jeder
+            // Request mitschleppt und das über ~4 KB geteilt werden muss.
             if (account) {
                 token.refreshToken = account.refresh_token;
-                token.idToken = account.id_token;
                 token.expiresAt = account.expires_at;
                 return token;
             }
@@ -114,7 +113,7 @@ export const authConfig = {
             }
             // Scheitert der Realm, bleibt es beim lokalen Logout —
             // endKeycloakSession schluckt den Fehler selbst.
-            await endKeycloakSession(message.token?.idToken);
+            await endKeycloakSession(message.token?.refreshToken);
         },
     },
 } satisfies NextAuthConfig;

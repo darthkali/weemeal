@@ -209,7 +209,9 @@ Two things to keep in mind when you roll this out: leave the realm's *Revoke
 Refresh Token* switch **off** (its default) — WeeMeal keeps the refresh token in
 the session cookie and cannot always write back a rotated one — and expect
 sessions that predate this version to end at the login page once, since their
-cookie carries no refresh token to check with.
+cookie carries no refresh token to check with. The cookie holds the refresh
+token and nothing else; access and ID token are deliberately left out so it
+stays small enough to travel as a single cookie.
 
 **Abmelden** ends the Keycloak session too (RP-initiated logout against the
 realm's `end_session_endpoint`), so the next login asks for credentials instead
@@ -226,11 +228,12 @@ Terminate TLS in your proxy, forward `X-Forwarded-Proto` and
 `X-Forwarded-Host`, and set `AUTH_URL` to the public `https://` URL — otherwise
 login redirects and secure cookies point at the wrong host.
 
-In `keycloak` mode the session cookie also carries the refresh and ID token, so
-it is a few kilobytes and Auth.js may split it across several `Set-Cookie`
-headers. nginx buffers response headers in 4–8 KB by default and answers with
-**502 Bad Gateway** (`upstream sent too big header` in its error log) once the
-login callback exceeds that. Give it room:
+In `keycloak` mode the session cookie also carries the refresh token, so it is
+larger than a plain login cookie. nginx buffers response headers in 4–8 KB by
+default and answers the login callback with **502 Bad Gateway** (`upstream sent
+too big header` in its error log) once they exceed that — or drops the cookie
+silently, which leaves you signed in at Keycloak but without a session in
+WeeMeal. Give it room:
 
 ```nginx
 proxy_buffer_size   16k;

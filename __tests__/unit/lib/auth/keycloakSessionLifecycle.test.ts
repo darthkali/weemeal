@@ -72,11 +72,11 @@ describe('jwt callback in keycloak mode', () => {
             role: 'user',
             authMode: 'keycloak',
             refreshToken: 'refresh-1',
-            idToken: 'id-1',
             expiresAt: FUTURE,
         });
-        // Das Access-Token selbst gehört nicht ins Cookie.
+        // Weder Access- noch ID-Token gehören ins Cookie.
         expect(token).not.toHaveProperty('accessToken');
+        expect(token).not.toHaveProperty('idToken');
         expect(refreshKeycloakSession).not.toHaveBeenCalled();
     });
 
@@ -181,9 +181,9 @@ describe('signOut event', () => {
     it('ends the Keycloak session in keycloak mode', async () => {
         const config = await loadConfig('keycloak');
 
-        await config.events.signOut({token: {sub: 'kc-1', idToken: 'id-1'}} as never);
+        await config.events.signOut({token: {sub: 'kc-1', refreshToken: 'refresh-1'}} as never);
 
-        expect(endKeycloakSession).toHaveBeenCalledWith('id-1');
+        expect(endKeycloakSession).toHaveBeenCalledWith('refresh-1');
     });
 
     it('leaves the identity provider alone in local mode', async () => {
@@ -194,10 +194,10 @@ describe('signOut event', () => {
         expect(endKeycloakSession).not.toHaveBeenCalled();
     });
 
-    // Ohne id_token gibt es nichts zu beenden — der lokale Logout gilt
+    // Ohne Refresh-Token gibt es nichts zu beenden — der lokale Logout gilt
     // trotzdem. (Dass ein nicht erreichbarer Realm den Logout nicht abwirft,
     // prüft keycloakSession.test.ts am Modul selbst.)
-    it('leaves the logout intact without an id token', async () => {
+    it('leaves the logout intact without a refresh token', async () => {
         const config = await loadConfig('keycloak');
 
         await config.events.signOut({token: {sub: 'kc-1'}} as never);

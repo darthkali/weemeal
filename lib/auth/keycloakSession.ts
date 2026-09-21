@@ -11,8 +11,11 @@ import {resolveRole} from '@/lib/auth/resolveRole';
  * können (id_token_hint).
  */
 export interface KeycloakSessionTokens {
+    // Das einzige Token, das WeeMeal aufhebt: es prüft die Session nach und
+    // beendet sie. Alles andere bliebe totes Gewicht in einem Cookie, das bei
+    // jedem Request mitreist — und das jenseits von ~4 KB geteilt werden muss,
+    // was unterwegs nicht jeder Proxy heil durchreicht.
     refreshToken?: string;
-    idToken?: string;
     // Ablauf des Access-Tokens als Unix-Zeit in Sekunden (wie Auth.js und
     // Keycloak sie liefern).
     expiresAt?: number;
@@ -164,7 +167,6 @@ export async function refreshKeycloakSession<T extends KeycloakSessionTokens>(
         role,
         refreshToken:
             typeof payload.refresh_token === 'string' ? payload.refresh_token : token.refreshToken,
-        idToken: idToken ?? token.idToken,
         expiresAt: nextExpiry(payload.expires_in, freshClaims, now),
     };
 }
@@ -173,20 +175,21 @@ export async function refreshKeycloakSession<T extends KeycloakSessionTokens>(
  * RP-initiated Logout: beendet die Session im Realm, damit der nächste Login
  * wieder Anmeldedaten verlangt statt still per SSO durchzugehen.
  *
- * Serverseitiger Aufruf mit `id_token_hint` — damit braucht es keine
- * registrierte `post_logout_redirect_uri` und keinen Browser-Umweg; die
- * Antwort (eine Redirect- oder Bestätigungsseite) interessiert nicht.
+ * Ausgewiesen wird sich mit dem Refresh-Token und den Client-Credentials —
+ * der Weg, den Keycloak vertraulichen Clients serverseitig anbietet. Der
+ * sonst übliche `id_token_hint` würde verlangen, auch das ID-Token im Cookie
+ * mitzuschleppen; dafür ist es zu groß.
  *
  * Scheitert der Aufruf, bleibt es beim lokalen Logout: das WeeMeal-Cookie ist
  * ohnehin weg, und die Keycloak-Session läuft von selbst ab.
  */
 export async function endKeycloakSession(
-    idToken: string | undefined,
+    refreshToken: string | undefined,
     deps: KeycloakSessionDeps = {}
 ): Promise<void> {
-    const {issuer, clientId, fetchImpl} = resolveDeps(deps);
+    const {issuer, clientId, clientSecret, fetchImpl} = resolveDeps(deps);
 
-    if (!idToken) {
+    if (!refreshToken || !clientId || !clientSecret) {
         return;
     }
 
@@ -195,20 +198,20 @@ export async function endKeycloakSession(
         return;
     }
 
-    const url = new URL(endpoints.endSessionEndpoint);
-    url.searchParams.set('id_token_hint', idToken);
-    if (clientId) {
-        url.searchParams.set('client_id', clientId);
-    }
-
     try {
-        const response = await fetchImpl(url.toString(), {
+        const response = await fetchImpl(endpoints.endSessionEndpoint, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({
+                client_id: clientId,
+                client_secret: clientSecret,
+                refresh_token: refreshToken,
+            }).toString(),
             cache: 'no-store',
             signal: AbortSignal.timeout(KEYCLOAK_REQUEST_TIMEOUT_MS),
         });
-        // Weist Keycloak den id_token_hint zurück, antwortet es mit einer
-        // Bestätigungsseite statt zu beenden — dann bliebe die Session stehen,
-        // ohne dass jemand es merkt.
+        // Lehnt Keycloak ab, bliebe die Session stehen, ohne dass es jemand
+        // merkt — der nächste Login ginge wieder still per SSO durch.
         if (!response.ok) {
             console.warn(`[auth] Keycloak-Logout abgelehnt (HTTP ${response.status})`);
         }
