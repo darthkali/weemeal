@@ -22,10 +22,12 @@ export default async function RootLayout({
 
     // Bleibt die Navbar leer, obwohl jemand angemeldet ist, verrät erst der
     // Request, woran es liegt: kam gar kein Cookie an, oder kam eines an, das
-    // nicht trägt? Auth.js schweigt in diesem Fall (siehe AUTH_DEBUG).
-    if (!session && !isAuthDisabled() && process.env.AUTH_DEBUG === 'true') {
+    // nicht trägt? Auth.js schweigt in diesem Fall (siehe AUTH_DEBUG). Die
+    // Zeile kommt bei jedem Render — ihr Ausbleiben ist selbst eine Aussage:
+    // dann läuft nicht der Code, den man gerade untersucht.
+    if (!isAuthDisabled() && process.env.AUTH_DEBUG === 'true') {
         console.warn(
-            '[auth][diagnose] Seite ohne Session gerendert —',
+            `[auth][diagnose] Render mit Session: ${session?.user?.name ? 'ja' : 'nein'} —`,
             describeSessionCookies((await headers()).get('cookie'))
         );
     }
