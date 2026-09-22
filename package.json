@@ -28,7 +28,7 @@
     "browser-image-compression": "2.0.2",
     "heic2any": "0.0.4",
     "lucide-react": "^1.47.0",
-    "marked": "18.0.13",
+    "marked": "18.0.14",
     "mongodb": "7.6.0",
     "mongoose": "9.10.1",
     "next": "16.3.5",
