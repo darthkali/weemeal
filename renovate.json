@@ -15,9 +15,9 @@
   },
   "packageRules": [
     {
-      "description": "Types follow the Node runtime (24 LTS in Dockerfile and CI)",
+      "description": "Types follow the Node runtime (26 in Dockerfile, CI and .nvmrc)",
       "matchPackageNames": ["@types/node"],
-      "allowedVersions": "<25"
+      "allowedVersions": "<27"
     },
     {
       "description": "Font Awesome packages are released together",
