@@ -1,6 +1,54 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    ":timezone(Europe/Berlin)",
+    "schedule:weekly",
+    ":maintainLockFilesWeekly",
+    "helpers:pinGitHubActionDigests",
+    "docker:pinDigests"
+  ],
+  "minimumReleaseAge": "3 days",
+  "vulnerabilityAlerts": {
+    "schedule": ["at any time"],
+    "minimumReleaseAge": null
+  },
+  "packageRules": [
+    {
+      "description": "Types follow the Node runtime (24 LTS in Dockerfile and CI)",
+      "matchPackageNames": ["@types/node"],
+      "allowedVersions": "<25"
+    },
+    {
+      "description": "Font Awesome packages are released together",
+      "matchPackageNames": ["@fortawesome/**"],
+      "groupName": "fontawesome"
+    },
+    {
+      "description": "Mongoose depends on the MongoDB driver; keep both in step",
+      "matchPackageNames": ["mongoose", "mongodb"],
+      "groupName": "mongodb"
+    },
+    {
+      "description": "CSS toolchain",
+      "matchPackageNames": ["tailwindcss", "postcss", "autoprefixer"],
+      "groupName": "css toolchain"
+    },
+    {
+      "description": "Patched base image must produce a release and a new Docker image",
+      "matchFileNames": ["Dockerfile"],
+      "semanticCommitType": "fix"
+    },
+    {
+      "description": "Dev-only compose images: one PR",
+      "matchFileNames": ["docker-compose.yml"],
+      "groupName": "local dev services"
+    },
+    {
+      "description": "Action updates are exercised by the CI run itself",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true
+    }
   ]
 }
