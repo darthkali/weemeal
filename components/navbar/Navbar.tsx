@@ -50,7 +50,7 @@ export default function Navbar({
     const brand = (
         <>
             <div
-                className="w-10 h-10 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow">
+                className="w-10 h-10 rounded-xl overflow-hidden shadow-xs group-hover:shadow-md transition-shadow">
                 <Image
                     src="/logo192.png"
                     alt="WeeMeal Logo"
@@ -82,7 +82,7 @@ export default function Navbar({
                             <button
                                 type="button"
                                 onClick={() => setMenuOpen((open) => !open)}
-                                className="w-10 h-10 rounded-full bg-primary text-white font-semibold flex items-center justify-center shadow-sm hover:bg-primary-hover transition-colors"
+                                className="w-10 h-10 rounded-full bg-primary text-white font-semibold flex items-center justify-center shadow-xs hover:bg-primary-hover transition-colors"
                                 aria-label="Benutzermenü"
                                 aria-haspopup="menu"
                                 aria-expanded={menuOpen}

@@ -390,7 +390,7 @@ export default function ImageUpload({
             {previewUrl && phase !== 'error' ? (
                 /* Image Preview */
                 <div className="relative group rounded-2xl overflow-hidden bg-gray-100">
-                    <div className="aspect-[4/3] relative">
+                    <div className="aspect-4/3 relative">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src={previewUrl}
@@ -400,7 +400,7 @@ export default function ImageUpload({
 
                         {/* Overlay on hover */}
                         <div
-                            className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
                                 {/* Action buttons left */}
                                 <div className="flex items-center gap-2">
@@ -409,7 +409,7 @@ export default function ImageUpload({
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={disabled}
-                                        className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-xl text-sm font-medium text-gray-700 hover:bg-white transition-colors flex items-center gap-2"
+                                        className="px-4 py-2 bg-white/90 backdrop-blur-xs rounded-xl text-sm font-medium text-gray-700 hover:bg-white transition-colors flex items-center gap-2"
                                     >
                                         <FontAwesomeIcon icon={faImage} className="w-4 h-4"/>
                                         Ersetzen
@@ -420,7 +420,7 @@ export default function ImageUpload({
                                         type="button"
                                         onClick={handleOpenEditor}
                                         disabled={disabled}
-                                        className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-xl text-sm font-medium text-gray-700 hover:bg-white transition-colors flex items-center gap-2"
+                                        className="px-4 py-2 bg-white/90 backdrop-blur-xs rounded-xl text-sm font-medium text-gray-700 hover:bg-white transition-colors flex items-center gap-2"
                                     >
                                         <FontAwesomeIcon icon={faCrop} className="w-4 h-4"/>
                                         Bearbeiten
@@ -432,7 +432,7 @@ export default function ImageUpload({
                                     type="button"
                                     onClick={handleRemove}
                                     disabled={disabled}
-                                    className="p-2.5 bg-red-500/90 backdrop-blur-sm rounded-xl text-white hover:bg-red-600 transition-colors"
+                                    className="p-2.5 bg-red-500/90 backdrop-blur-xs rounded-xl text-white hover:bg-red-600 transition-colors"
                                     aria-label="Bild entfernen"
                                 >
                                     <FontAwesomeIcon icon={faTrash} className="w-4 h-4"/>
@@ -478,7 +478,7 @@ export default function ImageUpload({
                         {/* Icon */}
                         <div className={`
                             w-16 h-16 rounded-full flex items-center justify-center mb-4
-                            ${error ? 'bg-red-100' : isDragging ? 'bg-primary/20' : 'bg-white shadow-sm'}
+                            ${error ? 'bg-red-100' : isDragging ? 'bg-primary/20' : 'bg-white shadow-xs'}
                         `}>
                             <FontAwesomeIcon
                                 icon={error ? faExclamationTriangle : phase === 'compressing' ? faSpinner : faCloudUploadAlt}
