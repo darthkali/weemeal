@@ -194,7 +194,7 @@ export default function RecipeNotes({recipeId, initialNotes}: RecipeNotesProps) 
                     onChange={(e) => handleNotesChange(e.target.value)}
                     onBlur={handleBlur}
                     placeholder="Eigene Notizen hinzufuegen... (z.B. Tipps, Variationen, Anpassungen)"
-                    className="w-full min-h-[100px] p-3 bg-white border border-amber-200 rounded-xl text-sm text-gray-700 placeholder-amber-400/70 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent resize-none"
+                    className="w-full min-h-[100px] p-3 bg-white border border-amber-200 rounded-xl text-sm text-gray-700 placeholder-amber-400/70 focus:outline-hidden focus:ring-2 focus:ring-amber-300 focus:border-transparent resize-none"
                     maxLength={5000}
                 />
             ) : hasNotes ? (

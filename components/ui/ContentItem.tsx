@@ -31,11 +31,11 @@ export default function ContentItem({content, portionMultiplier = 1}: ContentIte
                 <div className="flex items-center gap-2 flex-1">
                     {/* Bullet point */}
                     <div
-                        className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-colors flex-shrink-0"/>
+                        className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-colors shrink-0"/>
 
                     {/* Amount and unit */}
                     {formattedAmount !== null && (
-                        <span className="font-semibold text-text-dark min-w-[5rem] tabular-nums">
+                        <span className="font-semibold text-text-dark min-w-20 tabular-nums">
                             {formattedAmount} {content.unit || ''}
                         </span>
                     )}

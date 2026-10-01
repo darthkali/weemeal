@@ -284,7 +284,7 @@ export default function RecipeFormView({
             <div className="card p-6 md:p-8 mb-6">
                 <div className="flex items-center gap-3 mb-6">
                     <div
-                        className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center">
+                        className="w-12 h-12 rounded-xl bg-linear-to-br from-primary to-primary-light flex items-center justify-center">
                         <FontAwesomeIcon icon={faUtensils} className="w-6 h-6 text-white"/>
                     </div>
                     <div>
@@ -775,7 +775,7 @@ export default function RecipeFormView({
                             text-gray-600
                             bg-gray-100 hover:bg-gray-200
                             transition-all duration-150
-                            focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2
+                            focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-offset-2
                             active:scale-[0.98]
                         "
                     >
@@ -795,7 +795,7 @@ export default function RecipeFormView({
                             disabled:opacity-70 disabled:cursor-not-allowed
                             hover:shadow-lg hover:shadow-primary/30
                             hover:-translate-y-0.5
-                            focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                            focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2
                             active:scale-[0.98]
                             flex items-center gap-2
                         "

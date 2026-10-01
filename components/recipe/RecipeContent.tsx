@@ -100,7 +100,7 @@ export default function RecipeContent({
         <>
             {/* Hero Image */}
             <div
-                className={`relative h-72 md:h-96 rounded-3xl overflow-hidden mb-8 bg-gradient-to-br ${placeholderColor.bg}`}>
+                className={`relative h-72 md:h-96 rounded-3xl overflow-hidden mb-8 bg-linear-to-br ${placeholderColor.bg}`}>
                 {recipe.imageUrl ? (
                     recipe.imageUrl.startsWith('data:') ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -122,7 +122,7 @@ export default function RecipeContent({
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div
-                            className="w-32 h-32 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                            className="w-32 h-32 rounded-full bg-white/30 backdrop-blur-xs flex items-center justify-center">
                             <FontAwesomeIcon
                                 icon={faUtensils}
                                 className={`w-16 h-16 ${placeholderColor.icon}`}
@@ -132,7 +132,7 @@ export default function RecipeContent({
                 )}
 
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"/>
+                <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent"/>
 
                 {/* Action buttons overlay */}
                 {actions && (
@@ -239,7 +239,7 @@ export default function RecipeContent({
                             {recipe.source.type === 'book' && (
                                 <div className="flex items-start gap-3">
                                     <div
-                                        className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                        className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                                         <FontAwesomeIcon icon={faBook} className="w-4 h-4 text-blue-600"/>
                                     </div>
                                     <div>
@@ -258,7 +258,7 @@ export default function RecipeContent({
                                     className="flex items-center gap-3 group"
                                 >
                                     <div
-                                        className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                        className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                                         <FontAwesomeIcon icon={faExternalLinkAlt} className="w-4 h-4 text-blue-600"/>
                                     </div>
                                     <span className="text-sm text-blue-600 group-hover:underline truncate">
@@ -269,7 +269,7 @@ export default function RecipeContent({
                             {recipe.source.type === 'text' && (
                                 <div className="flex items-start gap-3">
                                     <div
-                                        className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                        className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                                         <FontAwesomeIcon icon={faQuoteRight} className="w-4 h-4 text-blue-600"/>
                                     </div>
                                     <p className="text-sm text-gray-800 whitespace-pre-wrap">

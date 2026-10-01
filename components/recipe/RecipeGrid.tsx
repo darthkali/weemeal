@@ -15,7 +15,7 @@ export default function RecipeGrid({recipes}: RecipeGridProps) {
         return (
             <div className="empty-state bg-white rounded-3xl border border-gray-100 shadow-card-sm">
                 <div
-                    className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary-subtle to-primary/10 flex items-center justify-center mb-6">
+                    className="w-24 h-24 rounded-2xl bg-linear-to-br from-primary-subtle to-primary/10 flex items-center justify-center mb-6">
                     <FontAwesomeIcon
                         icon={faBookOpen}
                         className="w-12 h-12 text-primary/60"

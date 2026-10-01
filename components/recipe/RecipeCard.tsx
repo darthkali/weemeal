@@ -37,7 +37,7 @@ export default function RecipeCard({recipe, priority = false}: RecipeCardProps) 
         <Link href={`/recipe/${recipe._id}`} className="block group">
             <article className="recipe-card bg-white overflow-hidden h-full flex flex-col">
                 {/* Image Section */}
-                <div className={`relative h-44 overflow-hidden bg-gradient-to-br ${placeholderColor.bg}`}>
+                <div className={`relative h-44 overflow-hidden bg-linear-to-br ${placeholderColor.bg}`}>
                     {recipe.imageUrl ? (
                         recipe.imageUrl.startsWith('data:') ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -59,7 +59,7 @@ export default function RecipeCard({recipe, priority = false}: RecipeCardProps) 
                     ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div
-                                className="w-20 h-20 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                                className="w-20 h-20 rounded-full bg-white/30 backdrop-blur-xs flex items-center justify-center">
                                 <FontAwesomeIcon
                                     icon={faUtensils}
                                     className={`w-10 h-10 ${placeholderColor.icon}`}
@@ -71,7 +71,7 @@ export default function RecipeCard({recipe, priority = false}: RecipeCardProps) 
                     {/* Share Link marker */}
                     {recipe.shared && (
                         <span
-                            className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm shadow-sm text-xs font-medium text-text-dark">
+                            className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-xs shadow-xs text-xs font-medium text-text-dark">
                             <FontAwesomeIcon icon={faShareNodes} className="w-3 h-3 text-primary"/>
                             Geteilt
                         </span>
@@ -80,7 +80,7 @@ export default function RecipeCard({recipe, priority = false}: RecipeCardProps) 
                     {/* Gradient overlay for text readability */}
                     {recipe.imageUrl && (
                         <div
-                            className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
+                            className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
                     )}
                 </div>
 
@@ -130,7 +130,7 @@ export default function RecipeCard({recipe, priority = false}: RecipeCardProps) 
 
                 {/* Hover accent line */}
                 <div
-                    className="h-1 bg-gradient-to-r from-primary to-primary-light transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"/>
+                    className="h-1 bg-linear-to-r from-primary to-primary-light transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"/>
             </article>
         </Link>
     );

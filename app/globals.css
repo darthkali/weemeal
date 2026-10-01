@@ -1,304 +1,385 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: var(--primary-color);
+  --color-primary-hover: var(--primary-color-hover);
+  --color-primary-light: var(--primary-color-light);
+  --color-primary-subtle: var(--primary-color-subtle);
+
+  --color-secondary: var(--secondary-color);
+  --color-secondary-hover: var(--secondary-color-hover);
+  --color-secondary-light: var(--secondary-color-light);
+  --color-secondary-subtle: var(--secondary-color-subtle);
+
+  --color-error: var(--error-color);
+  --color-error-hover: var(--error-color-hover);
+
+  --color-success: var(--success-color);
+  --color-warning: var(--warning-color);
+  --color-text-dark: var(--text-color-dark);
+  --color-text-muted: var(--text-color-muted);
+  --color-text-light: var(--text-color-light);
+
+  --color-background: var(--background-color);
+  --color-background-white: var(--background-color-white);
+  --color-background-subtle: var(--background-color-subtle);
+
+  --color-border-light: var(--border-color-light);
+  --color-border-medium: var(--border-color-medium);
+
+  --shadow-card: var(--box-shadow);
+  --shadow-card-hover: var(--box-shadow-hover);
+  --shadow-card-sm: var(--box-shadow-sm);
+  --shadow-card-lg: var(--box-shadow-lg);
+
+  --radius-card: var(--card-border-radius);
+  --radius-button: var(--button-border-radius);
+
+  --font-sans:
+    Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+
+  --animate-fade-in: fadeIn 200ms ease-out;
+  --animate-slide-up: slideUp 200ms ease-out;
+  --animate-slide-in-right: slideInRight 200ms ease-out;
+  --animate-pulse-subtle: pulse-subtle 2s ease-in-out infinite;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  /* Tailwind CSS v4 resets buttons to `cursor: default`; keep v3 behavior. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* Tailwind custom components */
+
+@utility card {
+  /* Card component - modern glassmorphism-inspired */
+  @apply bg-white rounded-2xl shadow-card border border-gray-100/50;
+  transition: all var(--transition-base);
+
+  &:hover {
+    @apply shadow-card-hover;
+  }
+}
+
+@utility btn {
+  /* Button base styles - modern rounded with smooth transitions */
+  @apply px-5 py-2.5 rounded-xl font-semibold cursor-pointer inline-flex items-center justify-center gap-2;
+  transition: all var(--transition-fast);
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+@utility btn-primary {
+  @apply bg-primary text-white;
+  box-shadow: 0 2px 8px -2px rgba(45, 106, 79, 0.4);
+
+  &:hover {
+    @apply bg-primary-hover;
+    box-shadow: 0 4px 12px -2px rgba(45, 106, 79, 0.5);
+    transform: translateY(-1px);
+  }
+}
+
+@utility btn-secondary {
+  @apply bg-secondary text-white;
+  box-shadow: 0 2px 8px -2px rgba(231, 111, 81, 0.4);
+
+  &:hover {
+    @apply bg-secondary-hover;
+    box-shadow: 0 4px 12px -2px rgba(231, 111, 81, 0.5);
+    transform: translateY(-1px);
+  }
+}
+
+@utility btn-error {
+  @apply bg-error text-white;
+  box-shadow: 0 2px 8px -2px rgba(220, 38, 38, 0.4);
+
+  &:hover {
+    @apply bg-error-hover;
+    box-shadow: 0 4px 12px -2px rgba(220, 38, 38, 0.5);
+    transform: translateY(-1px);
+  }
+}
+
+@utility btn-outline {
+  @apply border-2 border-gray-200 bg-white text-text-dark;
+
+  &:hover {
+    @apply border-primary bg-primary-subtle text-primary;
+  }
+}
+
+@utility btn-ghost {
+  @apply bg-transparent text-text-dark hover:bg-gray-100;
+}
+
+@utility input {
+  /* Form inputs - modern with subtle shadows */
+  @apply w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-text-dark;
+  transition: all var(--transition-fast);
+
+  &:focus {
+    @apply outline-hidden border-primary;
+    box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.1);
+  }
+
+  &::placeholder {
+    @apply text-gray-400;
+  }
+}
+
+@utility input-error {
+  @apply border-error;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+}
+
+@utility spinner {
+  /* Loading spinner - modern animated */
+  @apply w-12 h-12 rounded-full animate-spin;
+  border: 3px solid var(--primary-color-subtle);
+  border-top-color: var(--primary-color);
+}
+
+@utility recipe-card {
+  /* Recipe card specific styles - enhanced hover effects */
+  @apply card cursor-pointer overflow-hidden;
+  transition: all var(--transition-base);
+
+  &:hover {
+    transform: translateY(-6px);
+    @apply shadow-card-hover;
+  }
+
+  &:hover .recipe-card-image {
+    transform: scale(1.05);
+  }
+}
+
+@utility recipe-card-image {
+  .recipe-card:hover & {
+    transform: scale(1.05);
+  }
+  transition: transform var(--transition-slow);
+
+  /* Prevent image flickering on load */
+  opacity: 1;
+  background-color: inherit;
+}
+
+@utility recipe-hero-image {
+  opacity: 1;
+  background-color: inherit;
+}
+
+@utility image-container {
+  /* Image container with stable dimensions */
+  @apply relative overflow-hidden;
+  contain: layout paint;
+}
+
+@utility section-header {
+  /* Section header styles */
+  @apply text-lg font-bold text-text-dark mb-3;
+  letter-spacing: -0.01em;
+}
+
+@utility ingredient-item {
+  /* Ingredient list styles - improved spacing */
+  @apply flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50;
+  transition: background-color var(--transition-fast);
+}
+
+@utility section-caption {
+  @apply font-bold text-primary mt-6 mb-3 text-sm uppercase tracking-wide;
+}
+
+@utility drag-handle {
+  /* Drag handle styles */
+  @apply cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500;
+  transition: color var(--transition-fast);
+}
+
+@utility modal-overlay {
+  /* QR Code modal styles - modern glassmorphism */
+  @apply fixed inset-0 flex items-center justify-center z-50;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: fadeIn var(--transition-fast) ease-out;
+}
+
+@utility modal-content {
+  @apply bg-white rounded-2xl p-8 max-w-md w-full mx-4;
+  box-shadow: var(--box-shadow-lg);
+  animation: slideUp var(--transition-base) ease-out;
+}
+
+@utility delete-dialog {
+  /* Delete dialog styles */
+  @apply text-center;
+}
+
+@utility delete-dialog-buttons {
+  @apply flex gap-4 justify-center mt-8;
+}
+
+@utility badge {
+  /* Badge styles */
+  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
+}
+
+@utility badge-primary {
+  @apply bg-primary-subtle text-primary;
+}
+
+@utility badge-secondary {
+  @apply bg-orange-100 text-secondary;
+}
+
+@utility empty-state {
+  /* Empty state styling */
+  @apply flex flex-col items-center justify-center py-16 px-6 text-center;
+}
+
+@utility empty-state-icon {
+  @apply w-20 h-20 text-gray-300 mb-6;
+}
+
+@utility empty-state-title {
+  @apply text-xl font-semibold text-text-dark mb-2;
+}
+
+@utility empty-state-description {
+  @apply text-gray-500 mb-6 max-w-md;
+}
 
 /* CSS Variables (Design Tokens) - Modern Design System */
 :root {
-    /* Primary palette - warm green for food/cooking */
-    --primary-color: #2D6A4F;
-    --primary-color-hover: #1B4332;
-    --primary-color-light: #40916C;
-    --primary-color-subtle: #D8F3DC;
+  /* Primary palette - warm green for food/cooking */
+  --primary-color: #2d6a4f;
+  --primary-color-hover: #1b4332;
+  --primary-color-light: #40916c;
+  --primary-color-subtle: #d8f3dc;
 
-    /* Secondary palette - warm accent */
-    --secondary-color: #E76F51;
-    --secondary-color-hover: #D64933;
-    --secondary-color-light: #F4A261;
-    --secondary-color-subtle: #FEF3E2;
+  /* Secondary palette - warm accent */
+  --secondary-color: #e76f51;
+  --secondary-color-hover: #d64933;
+  --secondary-color-light: #f4a261;
+  --secondary-color-subtle: #fef3e2;
 
-    /* Neutral palette */
-    --error-color: #DC2626;
-    --error-color-hover: #B91C1C;
-    --success-color: #16A34A;
-    --warning-color: #F59E0B;
+  /* Neutral palette */
+  --error-color: #dc2626;
+  --error-color-hover: #b91c1c;
+  --success-color: #16a34a;
+  --warning-color: #f59e0b;
 
-    /* Text colors */
-    --text-color-dark: #1F2937;
-    --text-color-muted: #6B7280;
-    --text-color-light: #ffffff;
+  /* Text colors */
+  --text-color-dark: #1f2937;
+  --text-color-muted: #6b7280;
+  --text-color-light: #ffffff;
 
-    /* Background colors */
-    --background-color: #F9FAFB;
-    --background-color-white: #ffffff;
-    --background-color-subtle: #F3F4F6;
+  /* Background colors */
+  --background-color: #f9fafb;
+  --background-color-white: #ffffff;
+  --background-color-subtle: #f3f4f6;
 
-    /* Border colors */
-    --border-color-light: #E5E7EB;
-    --border-color-medium: #D1D5DB;
+  /* Border colors */
+  --border-color-light: #e5e7eb;
+  --border-color-medium: #d1d5db;
 
-    /* Shadows - softer, more modern */
-    --box-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-    --box-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  /* Shadows - softer, more modern */
+  --box-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --box-shadow-hover:
+    0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --box-shadow-lg:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 
-    /* Border radius */
-    --card-border-radius: 16px;
-    --card-border-radius-bottom: 0 0 16px 16px;
-    --button-border-radius: 12px;
+  /* Border radius */
+  --card-border-radius: 16px;
+  --card-border-radius-bottom: 0 0 16px 16px;
+  --button-border-radius: 12px;
 
-    /* Transitions */
-    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Base styles */
-* {
+@layer base {
+  /* Base styles */
+  * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-}
+  }
 
-html {
+  html {
     scroll-behavior: smooth;
-}
+  }
 
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  body {
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
     color: var(--text-color-dark);
     background-color: var(--background-color);
     min-height: 100vh;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-}
+  }
 
-/* Typography scale */
-h1, h2, h3, h4, h5, h6 {
+  /* Typography scale */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     line-height: 1.3;
     font-weight: 600;
-}
+  }
 
-/* Focus styles for accessibility */
-:focus-visible {
+  /* Focus styles for accessibility */
+  :focus-visible {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
-}
+  }
 
-/* Selection color */
-::selection {
+  /* Selection color */
+  ::selection {
     background-color: var(--primary-color-subtle);
     color: var(--text-color-dark);
-}
-
-/* Tailwind custom utilities */
-@layer utilities {
-    .text-balance {
-        text-wrap: balance;
-    }
-}
-
-/* Tailwind custom components */
-@layer components {
-    /* Card component - modern glassmorphism-inspired */
-    .card {
-        @apply bg-white rounded-2xl shadow-card border border-gray-100/50;
-        transition: all var(--transition-base);
-    }
-
-    .card:hover {
-        @apply shadow-card-hover;
-    }
-
-    /* Button base styles - modern rounded with smooth transitions */
-    .btn {
-        @apply px-5 py-2.5 rounded-xl font-semibold cursor-pointer inline-flex items-center justify-center gap-2;
-        transition: all var(--transition-fast);
-    }
-
-    .btn:active {
-        transform: scale(0.98);
-    }
-
-    .btn-primary {
-        @apply bg-primary text-white;
-        box-shadow: 0 2px 8px -2px rgba(45, 106, 79, 0.4);
-    }
-
-    .btn-primary:hover {
-        @apply bg-primary-hover;
-        box-shadow: 0 4px 12px -2px rgba(45, 106, 79, 0.5);
-        transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-        @apply bg-secondary text-white;
-        box-shadow: 0 2px 8px -2px rgba(231, 111, 81, 0.4);
-    }
-
-    .btn-secondary:hover {
-        @apply bg-secondary-hover;
-        box-shadow: 0 4px 12px -2px rgba(231, 111, 81, 0.5);
-        transform: translateY(-1px);
-    }
-
-    .btn-error {
-        @apply bg-error text-white;
-        box-shadow: 0 2px 8px -2px rgba(220, 38, 38, 0.4);
-    }
-
-    .btn-error:hover {
-        @apply bg-error-hover;
-        box-shadow: 0 4px 12px -2px rgba(220, 38, 38, 0.5);
-        transform: translateY(-1px);
-    }
-
-    .btn-outline {
-        @apply border-2 border-gray-200 bg-white text-text-dark;
-    }
-
-    .btn-outline:hover {
-        @apply border-primary bg-primary-subtle text-primary;
-    }
-
-    .btn-ghost {
-        @apply bg-transparent text-text-dark hover:bg-gray-100;
-    }
-
-    /* Form inputs - modern with subtle shadows */
-    .input {
-        @apply w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-text-dark;
-        transition: all var(--transition-fast);
-    }
-
-    .input:focus {
-        @apply outline-none border-primary;
-        box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.1);
-    }
-
-    .input::placeholder {
-        @apply text-gray-400;
-    }
-
-    .input-error {
-        @apply border-error;
-        box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
-    }
-
-    /* Loading spinner - modern animated */
-    .spinner {
-        @apply w-12 h-12 rounded-full animate-spin;
-        border: 3px solid var(--primary-color-subtle);
-        border-top-color: var(--primary-color);
-    }
-
-    /* Recipe card specific styles - enhanced hover effects */
-    .recipe-card {
-        @apply card cursor-pointer overflow-hidden;
-        transition: all var(--transition-base);
-    }
-
-    .recipe-card:hover {
-        transform: translateY(-6px);
-        @apply shadow-card-hover;
-    }
-
-    .recipe-card:hover .recipe-card-image {
-        transform: scale(1.05);
-    }
-
-    .recipe-card-image {
-        transition: transform var(--transition-slow);
-    }
-
-    /* Prevent image flickering on load */
-    .recipe-card-image,
-    .recipe-hero-image {
-        opacity: 1;
-        background-color: inherit;
-    }
-
-    /* Image container with stable dimensions */
-    .image-container {
-        @apply relative overflow-hidden;
-        contain: layout paint;
-    }
-
-    /* Section header styles */
-    .section-header {
-        @apply text-lg font-bold text-text-dark mb-3;
-        letter-spacing: -0.01em;
-    }
-
-    /* Ingredient list styles - improved spacing */
-    .ingredient-item {
-        @apply flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50;
-        transition: background-color var(--transition-fast);
-    }
-
-    .section-caption {
-        @apply font-bold text-primary mt-6 mb-3 text-sm uppercase tracking-wide;
-    }
-
-    /* Drag handle styles */
-    .drag-handle {
-        @apply cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500;
-        transition: color var(--transition-fast);
-    }
-
-    /* QR Code modal styles - modern glassmorphism */
-    .modal-overlay {
-        @apply fixed inset-0 flex items-center justify-center z-50;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        animation: fadeIn var(--transition-fast) ease-out;
-    }
-
-    .modal-content {
-        @apply bg-white rounded-2xl p-8 max-w-md w-full mx-4;
-        box-shadow: var(--box-shadow-lg);
-        animation: slideUp var(--transition-base) ease-out;
-    }
-
-    /* Delete dialog styles */
-    .delete-dialog {
-        @apply text-center;
-    }
-
-    .delete-dialog-buttons {
-        @apply flex gap-4 justify-center mt-8;
-    }
-
-    /* Badge styles */
-    .badge {
-        @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
-    }
-
-    .badge-primary {
-        @apply bg-primary-subtle text-primary;
-    }
-
-    .badge-secondary {
-        @apply bg-orange-100 text-secondary;
-    }
-
-    /* Empty state styling */
-    .empty-state {
-        @apply flex flex-col items-center justify-center py-16 px-6 text-center;
-    }
-
-    .empty-state-icon {
-        @apply w-20 h-20 text-gray-300 mb-6;
-    }
-
-    .empty-state-title {
-        @apply text-xl font-semibold text-text-dark mb-2;
-    }
-
-    .empty-state-description {
-        @apply text-gray-500 mb-6 max-w-md;
-    }
+  }
 }
 
 /* Animations */
@@ -387,7 +468,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .recipe-instructions code {
-    @apply bg-gray-100 px-1 py-0.5 rounded text-sm;
+    @apply bg-gray-100 px-1 py-0.5 rounded-sm text-sm;
 }
 
 .recipe-instructions pre {

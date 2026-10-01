@@ -209,7 +209,7 @@ export default function ImageEditor({
     }, [imageUrl, croppedAreaPixels, rotation, onSave]);
 
     return (
-        <div className="fixed inset-0 z-[9999] bg-black flex flex-col">
+        <div className="fixed inset-0 z-9999 bg-black flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-4 bg-black/70 relative z-50">
                 <button
@@ -261,7 +261,7 @@ export default function ImageEditor({
             </div>
 
             {/* Controls */}
-            <div className="bg-black/80 backdrop-blur-sm px-4 py-4 space-y-4 relative z-50">
+            <div className="bg-black/80 backdrop-blur-xs px-4 py-4 space-y-4 relative z-50">
                 {/* Rotation Slider */}
                 <div className="flex items-center gap-4">
                     <FontAwesomeIcon icon={faRotateLeft} className="w-5 h-5 text-white/70"/>

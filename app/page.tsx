@@ -106,7 +106,7 @@ export default function HomePage() {
         <div className="space-y-8">
             {/* Hero Section */}
             <div
-                className="relative overflow-hidden bg-gradient-to-br from-primary-subtle from-10% via-white via-50% to-secondary-subtle rounded-3xl p-8 md:p-12 shadow-lg shadow-black/5">
+                className="relative overflow-hidden bg-linear-to-br from-primary-subtle from-10% via-white via-50% to-secondary-subtle rounded-3xl p-8 md:p-12 shadow-lg shadow-black/5">
                 {/* Decorative elements - green top left */}
                 <div
                     className="absolute top-0 left-0 w-72 h-72 bg-primary/10 rounded-full blur-3xl -translate-y-1/3 -translate-x-1/3"/>

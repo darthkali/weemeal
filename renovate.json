@@ -31,7 +31,7 @@
     },
     {
       "description": "CSS toolchain",
-      "matchPackageNames": ["tailwindcss", "postcss", "autoprefixer"],
+      "matchPackageNames": ["tailwindcss", "@tailwindcss/postcss", "postcss"],
       "groupName": "css toolchain"
     },
     {

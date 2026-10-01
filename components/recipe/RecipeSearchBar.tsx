@@ -50,7 +50,7 @@ export default function RecipeSearchBar({
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 placeholder={placeholder}
-                className="w-full pl-11 pr-10 py-3 bg-white border-2 border-gray-100 rounded-xl text-text-dark placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200"
+                className="w-full pl-11 pr-10 py-3 bg-white border-2 border-gray-100 rounded-xl text-text-dark placeholder:text-gray-400 focus:outline-hidden focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200"
             />
 
             {/* Clear Button */}

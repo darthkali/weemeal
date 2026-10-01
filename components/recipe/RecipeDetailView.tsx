@@ -67,7 +67,7 @@ export default function RecipeDetailView({recipe, canShare = false}: RecipeDetai
                         {canShare && (
                             <button
                                 onClick={() => setShowShareDialog(true)}
-                                className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center hover:bg-white transition-colors"
+                                className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-xs shadow-lg flex items-center justify-center hover:bg-white transition-colors"
                                 aria-label="Teilen"
                             >
                                 <FontAwesomeIcon icon={faShareNodes} className="w-4 h-4 text-text-dark"/>
@@ -75,14 +75,14 @@ export default function RecipeDetailView({recipe, canShare = false}: RecipeDetai
                         )}
                         <button
                             onClick={() => router.push(`/recipe/${recipe._id}/edit`)}
-                            className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center hover:bg-white transition-colors"
+                            className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-xs shadow-lg flex items-center justify-center hover:bg-white transition-colors"
                             aria-label="Bearbeiten"
                         >
                             <FontAwesomeIcon icon={faEdit} className="w-4 h-4 text-text-dark"/>
                         </button>
                         <button
                             onClick={() => setShowDeleteDialog(true)}
-                            className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center hover:bg-error hover:text-white transition-colors"
+                            className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-xs shadow-lg flex items-center justify-center hover:bg-error hover:text-white transition-colors"
                             aria-label="Loeschen"
                         >
                             <FontAwesomeIcon icon={faTrash} className="w-4 h-4"/>

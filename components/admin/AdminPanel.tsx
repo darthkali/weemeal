@@ -156,7 +156,7 @@ export default function AdminPanel({currentUserId}: AdminPanelProps) {
             )}
 
             {/* Create user */}
-            <form onSubmit={handleCreate} className="space-y-4 bg-white rounded-2xl p-6 shadow-sm">
+            <form onSubmit={handleCreate} className="space-y-4 bg-white rounded-2xl p-6 shadow-xs">
                 <h2 className="font-semibold text-text-dark">Neuen Benutzer anlegen</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                     <input
@@ -197,7 +197,7 @@ export default function AdminPanel({currentUserId}: AdminPanelProps) {
             </form>
 
             {/* User list */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm space-y-6">
+            <div className="bg-white rounded-2xl p-6 shadow-xs space-y-6">
                 {isLoading ? (
                     <p className="text-text-muted text-sm">Laden…</p>
                 ) : (
