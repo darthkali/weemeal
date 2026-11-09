@@ -24,7 +24,7 @@
     "@fortawesome/free-solid-svg-icons": "7.3.1",
     "@fortawesome/react-fontawesome": "3.5.0",
     "@hello-pangea/dnd": "18.0.1",
-    "@tailwindcss/postcss": "4.3.3",
+    "@tailwindcss/postcss": "4.3.5",
     "bcryptjs": "^3.0.3",
     "browser-image-compression": "2.0.2",
     "heic2any": "0.0.4",
@@ -38,7 +38,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-easy-crop": "6.2.3",
-    "tailwindcss": "4.3.3",
+    "tailwindcss": "4.3.5",
     "uuid": "14.0.2",
     "zod": "4.6.5"
   },
@@ -56,7 +56,7 @@
     "mongodb-memory-server": "11.3.0",
     "msw": "3.0.1",
     "next-test-api-route-handler": "5.0.7",
-    "postcss": "8.5.28",
+    "postcss": "8.5.32",
     "semantic-release": "25.0.9",
     "typescript": "7.0.2",
     "vitest": "5.0.3"
