@@ -3,7 +3,7 @@ version: '3.9'
 services:
   # MongoDB for local development
   mongodb:
-    image: mongo:9
+    image: mongo:9@sha256:b0c835c26e5997413e985000f1013c275377cd9607761c1784d486f6dd620b7f
     container_name: weemeal-mongodb
     restart: unless-stopped
     ports:
